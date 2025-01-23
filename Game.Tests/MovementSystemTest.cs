@@ -1,12 +1,9 @@
-﻿using Arch.Core;
-using Game.EntityComponentSystem;
-using Game.EntityComponentSystem.Components.Tags;
-using Game.EntityComponentSystem.Systems;
-using Game.Extentions;
-using LiteNetLib;
+﻿using Game.Common;
+using Game.Common.Extentions;
+using Game.Server;
+using Game.Server.Components;
+using Game.Server.Systems;
 using Microsoft.Extensions.Logging;
-using Moq;
-using NUnit.Framework.Internal;
 using System.Numerics;
 
 namespace Game.Tests
@@ -14,23 +11,25 @@ namespace Game.Tests
     [TestFixture]
     public class MovementSystemTest
     {
-        private World _world;
         private MovementSystem _movementSystem;
-        private NetManager _netManager;
+        private GameWorld _world;
+        private PacketDispatcher _packetDispatcher;
+        private ILogger<MovementSystem> _logger;
 
         [SetUp]
         public void SetUp()
         {
-            _world = World.Create();
-            _netManager = new NetManager(new EventBasedNetListener());
-            _movementSystem = new MovementSystem(_world, _netManager);
+            _world = new GameWorld();
+            _packetDispatcher = new PacketDispatcher();
+            _logger = new Logger<MovementSystem>(new LoggerFactory());
+            _movementSystem = new MovementSystem(_world, _packetDispatcher, _logger);
         }
 
         [TearDown]
         public void TearDown()
         {
-            _world.Dispose();
-            _movementSystem.Dispose();
+            _world.World.Dispose();
+            _movementSystem.Shutdown();
         }
 
         public static IEnumerable<TestCaseData> MovementTestCases()
@@ -74,16 +73,16 @@ namespace Game.Tests
         public void Update_MovesEntityCorrectly(PositionComponent initialPosition, VelocityComponent direction, MovementSpeedComponent speed, float deltaTime, Vector2 expectedPosition)
         {
             // Arrange
-            var entity = _world.Create();
-            _world.Add(entity, initialPosition);
-            _world.Add(entity, direction);
-            _world.Add(entity, speed);
+            var entity = _world.World.Create();
+            _world.World.Add(entity, initialPosition);
+            _world.World.Add(entity, direction);
+            _world.World.Add(entity, speed);
 
             // Act
             _movementSystem.Update(deltaTime);
 
             // Assert
-            var finalPosition = _world.Get<PositionComponent>(entity);
+            var finalPosition = _world.World.Get<PositionComponent>(entity);
             Assert.That(finalPosition.Value, Is.EqualTo(expectedPosition));
         }
 

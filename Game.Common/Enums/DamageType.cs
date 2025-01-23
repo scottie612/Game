@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Game.Configuration
+﻿namespace Game.Common.Enums
 {
     public enum DamageType
     {

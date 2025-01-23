@@ -1,10 +1,10 @@
-using Game.Configuration;
+using Game.Common.Enums;
 using Game.Packets;
-using Game.Events;
+using LiteNetLib;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EntitySpawningManager : Singleton<EntitySpawningManager>, IEntityEventListener<EntitySpawnedPacket>, IEntityEventListener<EntityDespawnedPacket>
+public class EntitySpawningManager : Singleton<EntitySpawningManager>
 {
     public ServerEntity PlayerPrefab;
     public ServerEntity FireballPrefab;
@@ -14,11 +14,11 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>, IEntityEv
 
     void Start()
     {
-        EntityEventManager<EntitySpawnedPacket>.Subscribe(this);
-        EntityEventManager<EntityDespawnedPacket>.Subscribe(this);
+        NetworkManager.Instance.PacketDispatcher.Subscribe<EntitySpawnedPacket>(OnEntitySpawnedPacketRecieved);
+        NetworkManager.Instance.PacketDispatcher.Subscribe<EntityDespawnedPacket>(OnEntityDespawnedPacketRecieved);
     }
 
-    public void OnEvent(EntitySpawnedPacket packet)
+    public void OnEntitySpawnedPacketRecieved(NetPeer peer, EntitySpawnedPacket packet)
     {
         ServerEntity spawnedEntity = null;
         switch (packet.Type)
@@ -36,11 +36,11 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>, IEntityEv
                 Debug.Log("Entity Type not implemented for spawnning");
                 break;
         }
-
+            
         SpawnedEntites?.Add(spawnedEntity.EntityID, spawnedEntity.gameObject);
     }
 
-    public void OnEvent(EntityDespawnedPacket packet)
+    public void OnEntityDespawnedPacketRecieved(NetPeer peer, EntityDespawnedPacket packet)
     {
         if (SpawnedEntites.TryGetValue(packet.EntityID, out GameObject spawnedEntity))
         {
@@ -51,8 +51,8 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>, IEntityEv
 
     void OnDestroy()
     {
-        EntityEventManager<EntitySpawnedPacket>.Unsubscribe(this);
-        EntityEventManager<EntityDespawnedPacket>.Unsubscribe(this);
+        NetworkManager.Instance.PacketDispatcher.Unsubscribe<EntitySpawnedPacket>(OnEntitySpawnedPacketRecieved);
+        NetworkManager.Instance.PacketDispatcher.Unsubscribe<EntityDespawnedPacket>(OnEntityDespawnedPacketRecieved);
     }
 
 

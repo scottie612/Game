@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System;
 
-namespace Game.Extentions
+namespace Game.Common.Extentions
 {
     public static class Vector2Extentions
     {

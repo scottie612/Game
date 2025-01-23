@@ -1,9 +1,9 @@
 using Game.Packets;
-using Game.Events;
+using LiteNetLib;
 using UnityEngine;
 
 [RequireComponent(typeof(ServerEntity))]
-public class MovementSync : MonoBehaviour, IEntityEventListener<EntityMovementData>
+public class MovementSync : MonoBehaviour
 {
     private ServerEntity _serverEntity;
 
@@ -12,7 +12,7 @@ public class MovementSync : MonoBehaviour, IEntityEventListener<EntityMovementDa
     {
         _newPosition = transform.position;
         _serverEntity = GetComponent<ServerEntity>();
-        EntityEventManager<EntityMovementData>.Subscribe(_serverEntity.EntityID, this);
+        NetworkManager.Instance.PacketDispatcher.Subscribe<EntityMovementPacket>(OnEntityMovementPacketRecieved);
     }
 
     private void FixedUpdate()
@@ -20,13 +20,15 @@ public class MovementSync : MonoBehaviour, IEntityEventListener<EntityMovementDa
         transform.position = Vector3.Lerp(transform.position, _newPosition, Time.deltaTime * 10);
     }
 
-    public void OnEvent(EntityMovementData packet)
+    public void OnEntityMovementPacketRecieved(NetPeer peer, EntityMovementPacket packet)
     {
+        if(packet.EntityID != _serverEntity.EntityID)
+            return;
         _newPosition = new Vector3(packet.Position.X, packet.Position.Y, 0);
     }
 
     private void OnDestroy()
     {
-        EntityEventManager<EntityMovementData>.Unsubscribe(_serverEntity.EntityID, this);
+        NetworkManager.Instance.PacketDispatcher.Unsubscribe<EntityMovementPacket>(OnEntityMovementPacketRecieved);
     }
 }

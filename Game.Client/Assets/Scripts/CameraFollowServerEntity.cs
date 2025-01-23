@@ -1,21 +1,23 @@
 using Cinemachine;
 using Game.Packets;
-using Game.Events;
+using LiteNetLib;
 using System.Collections;
 using UnityEngine;
 
 
 [RequireComponent(typeof(CinemachineVirtualCamera))]
-public class CameraFollowServerEntity : MonoBehaviour, IEntityEventListener<IdentityPacket>
+public class CameraFollowServerEntity : MonoBehaviour
 {
     private CinemachineVirtualCamera _camera;
 
-    void OnEnable()
+    void Start()
     {
         _camera = GetComponent<CinemachineVirtualCamera>();
-        EntityEventManager<IdentityPacket>.Subscribe(this);
+        NetworkManager.Instance.PacketDispatcher.Subscribe<IdentityPacket>(OnIdentityPacketRecieved);
+ 
     }
-    public void OnEvent(IdentityPacket eventPacket)
+
+    public void OnIdentityPacketRecieved(NetPeer peer, IdentityPacket eventPacket)
     {
         StartCoroutine(BindCameraToEntity(eventPacket.EntityID));
     }
@@ -34,8 +36,6 @@ public class CameraFollowServerEntity : MonoBehaviour, IEntityEventListener<Iden
     }
     private void OnDisable()
     {
-        EntityEventManager<IdentityPacket>.Unsubscribe(this);
+        NetworkManager.Instance.PacketDispatcher.Unsubscribe<IdentityPacket>(OnIdentityPacketRecieved);
     }
-
-
 }

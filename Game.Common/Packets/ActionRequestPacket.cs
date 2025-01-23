@@ -1,21 +1,28 @@
-﻿using Game.Common.Events;
-using Game.Configuration;
-using Game.Extentions;
+﻿using Game.Common.Enums;
+using Game.Common.Packets.Interfaces;
+using Game.Common.Extentions;
+using LiteNetLib;
 using LiteNetLib.Utils;
 using System.Numerics;
 
 namespace Game.Packets
 {
-
-    public struct ActionRequestPacket: INetSerializable, IPacket, IEvent
+    public struct ActionRequestPacket: IPacket
     {
-        public Packet PacketType => Packet.ActionRequest;
+        public PacketType PacketType => PacketType.ActionRequest;
+
+        public DeliveryMethod DeliveryMethod => DeliveryMethod.ReliableOrdered;
+
+        public bool IsBatched => false;
+
+        public NetPeer? NetPeer { get; set; }
+
         public int AbilityIndex { get; set; }
+
         public Vector2 CastDirection { get; set; }
          
         public void Serialize(NetDataWriter writer)
         {
-            writer.Put((byte)PacketType);
             writer.Put(AbilityIndex);
             writer.Put(CastDirection);
         }

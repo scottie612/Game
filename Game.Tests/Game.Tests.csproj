@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Game.EntityComponentSystem\Game.EntityComponentSystem.csproj" />
+    <ProjectReference Include="..\Game.Server\Game.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Game.Extentions
+namespace Game.Common.Extentions
 {
     public static class FloatExtentions
     {

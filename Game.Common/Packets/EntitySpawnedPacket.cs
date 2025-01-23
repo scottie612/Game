@@ -1,22 +1,30 @@
-﻿using Game.Configuration;
-using Game.Events;
+﻿using Game.Common.Enums;
+using Game.Common.Packets.Interfaces;
+using LiteNetLib;
 using LiteNetLib.Utils;
-using System.Collections.Generic;
 
 namespace Game.Packets
 {
-    public struct EntitySpawnedPacket : INetSerializable, IPacket, IEntityEvent
+    public struct EntitySpawnedPacket : IPacket
     {
-       
-        public Packet PacketType => Packet.EntitySpawned;
+        public PacketType PacketType => PacketType.EntitySpawned;
+
+        public DeliveryMethod DeliveryMethod => DeliveryMethod.ReliableOrdered;
+
+        public bool IsBatched => false;
+
         public int EntityID { get; set; }
+
+        public NetPeer? NetPeer { get; set; }
+
         public EntityType Type { get; set; }
+
         public float StartingX { get; set; }
+
         public float StartingY { get; set; }
 
         public void Serialize(NetDataWriter writer)
         {
-            writer.Put((byte)PacketType);
             writer.Put(EntityID);
             writer.Put((ushort)Type);
             writer.Put(StartingX);

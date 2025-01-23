@@ -1,67 +1,38 @@
-﻿using Game.Configuration;
-using Game.Events;
+﻿using Game.Common.Enums;
+using Game.Common.Packets.Interfaces;
+using Game.Common.Extentions;
+using LiteNetLib;
 using LiteNetLib.Utils;
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace Game.Packets
 {
-    public class EntityMovementPacket : INetSerializable, IDisposable
+    public struct EntityMovementPacket : IPacket
     {
-        public List<(int EntityID, float X, float Y)> Data = new List<(int EntityID, float X, float Y)>();
+        public PacketType PacketType => PacketType.EntityMovement;
 
-        public void Serialize(NetDataWriter writer)
-        {
-            writer.Put((byte)Packet.EntityMovement);
-            writer.Put((ushort)Data.Count);
-            for (int i = 0; i < Data.Count; i++) 
-            {
-                writer.Put(Data[i].EntityID);
-                writer.Put(Data[i].X);
-                writer.Put(Data[i].Y);
-            }
-        }
+        public DeliveryMethod DeliveryMethod => DeliveryMethod.Unreliable;
 
-        public void Deserialize(NetDataReader reader)
-        {
-            var count = reader.GetUShort();
-            for (int i = 0; i < count; i++)
-            {
-                var entityID = reader.GetInt();
-                var x = reader.GetFloat();
-                var y = reader.GetFloat();
-                Data.Add((entityID, x, y));
-            }
-        }
+        public bool IsBatched => true;
 
-        public void Dispose()
-        {
-            Data.Clear();
-        }
-    }
+        public NetPeer? NetPeer { get; set; }
 
-    public struct EntityMovementData : INetSerializable, IEntityEvent
-    {
         public int EntityID { get; set; }
-        public Vector2 Position;
 
-        public void Deserialize(NetDataReader reader)
-        {
-            EntityID = reader.GetInt();
-            Position.X = reader.GetFloat();
-            Position.Y = reader.GetFloat();
-        }
+        public Vector2 Position { get; set; }
 
         public void Serialize(NetDataWriter writer)
         {
             writer.Put(EntityID);
-            writer.Put(Position.X);
-            writer.Put(Position.Y);
+            writer.Put(Position);
+        }
+
+        public void Deserialize(NetDataReader reader)
+        {
+            EntityID = reader.GetInt();
+            Position = reader.GetVector2();
         }
     }
-
-
 }
 
 

@@ -1,8 +1,14 @@
-using Game.Configuration;
-using Game.Packets;
-using Game.Events;
+using Game.Common;
+using Game.Common.Encryption;
+using Game.Common.Enums;
+using Game.Common.Packets.Interfaces;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Newtonsoft.Json;
+using PlayFab;
+using PlayFab.ClientModels;
+using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
@@ -15,26 +21,69 @@ public class NetworkManager : Singleton<NetworkManager>, INetEventListener
 
     private NetManager _netManager;
     private NetDataWriter _writer = new NetDataWriter();
-    private NetPacketProcessor _packetProcessor = new NetPacketProcessor();
+
+    public PacketDispatcher PacketDispatcher { get; private set; } = new PacketDispatcher();
 
     private void Start()
     {
         _netManager = new NetManager(this);
         _netManager.IPv6Enabled = false;
+        _netManager.DisconnectTimeout = 300000;
         _netManager.Start();
-        _netManager.Connect(ip, port, "");
+
+
+
+        //Get Server Public Key
+        var publicKeyRequest = new GetTitleDataRequest()
+        {
+            Keys = new List<string>() { "PublicKey" }
+        };
+
+        var serverPublicKey = string.Empty;
+        PlayFabClientAPI.GetTitleData(publicKeyRequest, result =>
+        {
+            result.Data.TryGetValue("PublicKey", out serverPublicKey);
+
+            //Build AuthData
+            var authData = new AuthData()
+            {
+                PlayFabId = Globals.PlayFabUserID,
+                SessionTicket = Globals.SessionTicket,
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                ProtocolVersion = 1,
+                DeviceFingerprint = "DeviceFingerprint",
+                Nonce = Guid.NewGuid().ToString(),
+            };
+
+            //Generate AES Key
+            var aesKey = EncryptionHelper.GenerateAesKey();
+
+            //Encrypt AES Key with Server Public Key
+            var encryptedAesKey = EncryptionHelper.Encrypt(serverPublicKey, aesKey);
+
+            //Encrypt AuthData with AES Key
+            var encryptedAuthData = EncryptionHelper.EncryptAes(aesKey, JsonConvert.SerializeObject(authData));
+
+            //Sign AuthData with Private Key
+            var signature = EncryptionHelper.Sign(EncryptionHelper.GetPrivateKey(), JsonConvert.SerializeObject(authData));
+
+            _writer.Put(encryptedAesKey);
+            _writer.Put(encryptedAuthData);
+            _writer.Put(signature);
+            
+            _netManager.Connect(ip, port, _writer);
+
+        }, error =>
+        {
+            Debug.LogError(error.ErrorMessage);
+        });
+
     }
 
     private void FixedUpdate()
     {
         _netManager?.PollEvents();
-    }
-
-    public void Send<T>(T packet, DeliveryMethod deliveryMethod) where T : INetSerializable
-    {
-        _writer.Reset();
-        packet.Serialize(_writer);
-        _netManager.FirstPeer.Send(_writer, deliveryMethod);
+        PacketDispatcher.SendAllPackets(_netManager, _writer);
     }
 
     protected override void OnApplicationQuit()
@@ -56,35 +105,19 @@ public class NetworkManager : Singleton<NetworkManager>, INetEventListener
 
     public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
     {
-        var packetType = (Packet)reader.GetByte();
-        switch (packetType)
+        PacketType type = (PacketType)reader.GetByte();
+
+        List<IPacket> packets = PacketDispatcher.Deserialize(type, reader);
+        if (packets.Count != 0)
         {
-            case Packet.Identity:
-                var identityPacket = new IdentityPacket();
-                identityPacket.Deserialize(reader);
-                EntityEventManager<IdentityPacket>.RaiseEvent(identityPacket);
-                break;
-            case Packet.EntitySpawned:
-                var entitySpawnedPacket = new EntitySpawnedPacket();
-                entitySpawnedPacket.Deserialize(reader);
-                EntityEventManager<EntitySpawnedPacket>.RaiseEvent(entitySpawnedPacket);
-                break;
-            case Packet.EntityDespawned:
-                var entityDespawnedPacket = new EntityDespawnedPacket();
-                entityDespawnedPacket.Deserialize(reader);
-                EntityEventManager<EntityDespawnedPacket>.RaiseEvent(entityDespawnedPacket);
-                break;
-            case Packet.EntityMovement:
-                var numberOfUpdates = reader.GetUShort();
-                for (int i = 0; i < numberOfUpdates; i++)
-                {
-                    var movementData = new EntityMovementData();
-                    movementData.Deserialize(reader);
-                    EntityEventManager<EntityMovementData>.RaiseEvent(movementData);
-                }
-                break;
-            default:
-                break;
+            foreach (IPacket packet in packets)
+            {
+                PacketDispatcher.RaiseEvent(peer, packet);
+            }
+        }
+        else
+        {
+            Debug.LogError("Packet Type not found or failed to deserialize packet");
         }
     }
 

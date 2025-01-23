@@ -1,4 +1,4 @@
-﻿namespace Game.Configuration
+﻿namespace Game.Common.Enums
 {
     public enum EntityType 
     {

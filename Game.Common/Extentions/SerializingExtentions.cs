@@ -1,8 +1,8 @@
-﻿using Game.Configuration;
+﻿using Game.Common.Enums;
 using LiteNetLib.Utils;
 using System.Numerics;
 
-namespace Game.Extentions
+namespace Game.Common.Extentions
 {
     public static class SerializingExtentions
     {

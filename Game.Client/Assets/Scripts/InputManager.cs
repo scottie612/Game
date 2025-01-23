@@ -18,7 +18,9 @@ public class InputManager : Singleton<InputManager>
             var packet = new MovementRequestPacket();
             packet.XComponent = _currentMovementInput.x;
             packet.YComponent = _currentMovementInput.y;
-            NetworkManager.Instance.Send(packet, DeliveryMethod.Unreliable);
+
+            NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
+
             _previousMovementInput = _currentMovementInput;
         }
 
@@ -34,7 +36,8 @@ public class InputManager : Singleton<InputManager>
             var packet = new ActionRequestPacket();
             packet.AbilityIndex = 0;
             packet.CastDirection = new System.Numerics.Vector2(mousePos.x,mousePos.y);
-            NetworkManager.Instance.Send(packet, DeliveryMethod.ReliableUnordered);
+            NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
+
         }
 
     }
