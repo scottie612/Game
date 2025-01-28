@@ -72,6 +72,7 @@ public class NetworkManager : Singleton<NetworkManager>, INetEventListener
             _writer.Put(signature);
             
             _netManager.Connect(ip, port, _writer);
+            _writer.Reset();
 
         }, error =>
         {

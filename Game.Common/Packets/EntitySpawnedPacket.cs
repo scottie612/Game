@@ -13,11 +13,13 @@ namespace Game.Packets
 
         public bool IsBatched => false;
 
-        public int EntityID { get; set; }
-
         public NetPeer? NetPeer { get; set; }
 
+        public int EntityID { get; set; }
+
         public EntityType Type { get; set; }
+
+        public string EntityName { get; set; }
 
         public float StartingX { get; set; }
 
@@ -27,6 +29,7 @@ namespace Game.Packets
         {
             writer.Put(EntityID);
             writer.Put((ushort)Type);
+            writer.Put(EntityName);
             writer.Put(StartingX);
             writer.Put(StartingY);
         }
@@ -35,6 +38,7 @@ namespace Game.Packets
         {
             EntityID = reader.GetInt();
             Type = (EntityType)reader.GetUShort();
+            EntityName = reader.GetString();
             StartingX = reader.GetFloat();
             StartingY = reader.GetFloat();
         }

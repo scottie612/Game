@@ -26,11 +26,19 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>
             case EntityType.Player:
                 spawnedEntity = Instantiate(PlayerPrefab, new Vector3(packet.StartingX, packet.StartingY, 0), Quaternion.identity);
                 spawnedEntity.EntityID = packet.EntityID;
+                spawnedEntity.EntityName = packet.EntityName;
+
+                // If the entity is the local player, Bind the camera to it
+                if(spawnedEntity.EntityName == Globals.PlayFabUsername)
+                {
+                   spawnedEntity.gameObject.AddComponent<CameraFollowServerEntity>();
+                }
+
                 break;
             case EntityType.FireBall:
-                spawnedEntity = Instantiate(FireballPrefab);
-                spawnedEntity.transform.position = new Vector3( packet.StartingX, packet.StartingY, 0);
+                spawnedEntity = Instantiate(FireballPrefab, new Vector3(packet.StartingX, packet.StartingY, 0), Quaternion.identity);
                 spawnedEntity.EntityID = packet.EntityID;
+                spawnedEntity.EntityName = packet.EntityName;
                 break;
             default:
                 Debug.Log("Entity Type not implemented for spawnning");

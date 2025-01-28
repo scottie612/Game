@@ -10,7 +10,6 @@ namespace Game.Server.Systems
 {
     public class SpawningSystem : SystemBase
     {
-        public QueryDescription _identityQuery = new QueryDescription().WithAll<NewEntityTag, NetworkConnectionComponent>();
         public QueryDescription _newEntitiesQuery = new QueryDescription().WithAll<NewEntityTag, EntityTypeComponent, PositionComponent>();
         public QueryDescription _despawnEntitiesQuery = new QueryDescription().WithAll<DeleteEntityTag, EntityTypeComponent>();
         public QueryDescription _despawnAfterDistanceQuery = new QueryDescription().WithAll<DestroyAfterDistanceComponent, PositionComponent>();
@@ -23,22 +22,11 @@ namespace Game.Server.Systems
 
         public override void Update(float deltaTime)
         {
-            SendIdentity();
             DespawnAfterDistance();  
             SendSpawnedEntities();
             SendDespawnedEntites();
         }
 
-        private void SendIdentity()
-        {
-            World.World.Query(in _identityQuery, (Entity entity, ref NetworkConnectionComponent pc) =>
-            {
-                var packet = new IdentityPacket();
-                packet.EntityID = entity.Id;
-                packet.NetPeer = pc.Peer;
-                PacketDispatcher.Enqueue(packet);
-            });
-        }
         private void DespawnAfterDistance()
         {
             var buffer = new CommandBuffer();
@@ -65,6 +53,17 @@ namespace Game.Server.Systems
                 packet.Type = newEntityType.Type;
                 packet.StartingX = newEntityPos.Value.X;
                 packet.StartingY = newEntityPos.Value.Y;
+
+                //if the entity has a name component, add it to the packet, otherwise use EntityID as the name.
+                if (newEntity.TryGet<NameComponent>(out var nameComponent))
+                {
+                    packet.EntityName = nameComponent.Name;
+                }
+                else
+                {
+                    packet.EntityName = newEntity.Id.ToString();
+                }
+
                 PacketDispatcher.Enqueue(packet);
 
                 //If they are a player, Let them know about all other Existing Entities
@@ -79,6 +78,17 @@ namespace Game.Server.Systems
                         packet.StartingX = existingEntityPos.Value.X;
                         packet.StartingY = existingEntityPos.Value.Y;
                         packet.NetPeer = ncc.Peer;
+
+                        //if the existing entity has a name component, add it to the packet, otherwise use EntityID as the name.
+                        if (existingEntity.TryGet<NameComponent>(out var nameComponent))
+                        {
+                            packet.EntityName = nameComponent.Name;
+                        }
+                        else
+                        {
+                            packet.EntityName = newEntity.Id.ToString();
+                        }
+
                         PacketDispatcher.Enqueue(packet);
                     });
                 }
