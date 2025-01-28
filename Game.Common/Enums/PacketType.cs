@@ -8,7 +8,6 @@
 
 
         //Server
-        Identity,
         EntitySpawned,
         EntityDespawned,
         EntityMovement,

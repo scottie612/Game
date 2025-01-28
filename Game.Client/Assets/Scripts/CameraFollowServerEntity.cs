@@ -4,38 +4,20 @@ using LiteNetLib;
 using System.Collections;
 using UnityEngine;
 
-
-[RequireComponent(typeof(CinemachineVirtualCamera))]
 public class CameraFollowServerEntity : MonoBehaviour
 {
-    private CinemachineVirtualCamera _camera;
-
     void Start()
     {
-        _camera = GetComponent<CinemachineVirtualCamera>();
-        NetworkManager.Instance.PacketDispatcher.Subscribe<IdentityPacket>(OnIdentityPacketRecieved);
- 
-    }
-
-    public void OnIdentityPacketRecieved(NetPeer peer, IdentityPacket eventPacket)
-    {
-        StartCoroutine(BindCameraToEntity(eventPacket.EntityID));
-    }
-
-    IEnumerator BindCameraToEntity(int EntityID)
-    {
-        GameObject followTarget;
-        Debug.Log($"Looking for entity ID {EntityID}");
-        while (!EntitySpawningManager.Instance.SpawnedEntites.TryGetValue(EntityID, out followTarget))
+        var child = Camera.main.transform.GetChild(0);
+        Debug.Log("Child Name: " + child.name);
+        
+        if(child.TryGetComponent<CinemachineVirtualCamera>(out var virtualCamera))
         {
-            Debug.Log("Local Player not found");
-            yield return null;
+            virtualCamera.Follow = gameObject.transform;
         }
-
-        _camera.Follow = followTarget.transform;
-    }
-    private void OnDisable()
-    {
-        NetworkManager.Instance.PacketDispatcher.Unsubscribe<IdentityPacket>(OnIdentityPacketRecieved);
+        else
+        {
+            Debug.LogWarning("Camera does not have virtual camera component attached.");
+        }
     }
 }

@@ -37,7 +37,8 @@ public class PlayFabLoginManager : MonoBehaviour
             Password = _password.text,
             InfoRequestParameters = new GetPlayerCombinedInfoRequestParams()
             {
-                GetPlayerProfile = true
+                GetPlayerProfile = true,
+                GetUserAccountInfo = true,
             }
         };
 
@@ -48,21 +49,14 @@ public class PlayFabLoginManager : MonoBehaviour
                 _loginResponse.text = "Logged In!";
                 _loginResponse.color = Color.green;
 
-
-
                 //Save Variables
                 Globals.SessionTicket = successResult.SessionTicket;
                 Globals.PlayFabUserID = successResult.PlayFabId;
+                Globals.PlayFabUsername = successResult.InfoResultPayload.AccountInfo.Username;
+                
                 var privateKey = EncryptionHelper.GetPrivateKey();
                 var publicKey = EncryptionHelper.GetPublicKey();
 
-                UpdateUserDataRequest updateUserDataRequest = new UpdateUserDataRequest
-                {
-                    Data = new Dictionary<string, string>
-                    {
-                        {"PublicKey", publicKey}
-                    },
-                };
                 PlayFabClientAPI.UpdateUserData(new UpdateUserDataRequest
                 {
                     Data = new Dictionary<string, string>
