@@ -11,5 +11,7 @@
         EntitySpawned,
         EntityDespawned,
         EntityMovement,
+        EntityHealthChanged,
+        EntityManaChanged,
     }
 }
