@@ -26,11 +26,9 @@ namespace Game.Server.Systems
 
         public override void Update(float deltaTime)
         {
-            var time = deltaTime / 1000;
-
             UpdateVelocityWithPlayerInput();
             UpdateVelocityWithMovementSpeed();
-            UpdatePositionWithVelocity(time);
+            UpdatePositionWithVelocity(deltaTime);
             SendPositionUpdates();
         }
 
