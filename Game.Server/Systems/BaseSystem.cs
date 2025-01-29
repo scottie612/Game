@@ -1,5 +1,4 @@
 ﻿using Game.Common;
-using System;
 
 namespace Game.Server.Systems
 {
