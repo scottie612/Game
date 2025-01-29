@@ -22,7 +22,9 @@ namespace Game.Server.Entities
                 new MovementSpeedComponent { Value = 15f },
                 new HealthComponent { MaxValue = 100, CurrentValue = 100 },
                 new ManaComponent { MaxValue = 100, CurrentValue = 100 },
-                new NewEntityTag { }
+                new NewEntityTag { },
+                new HealthDirtyTag { },
+                new ManaDirtyTag { }
                 );
 
             return playerEntity;

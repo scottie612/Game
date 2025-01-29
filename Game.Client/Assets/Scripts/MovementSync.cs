@@ -8,7 +8,8 @@ public class MovementSync : MonoBehaviour
     private ServerEntity _serverEntity;
 
     private Vector3 _newPosition;
-    private void Start()
+
+    private void Awake()
     {
         _newPosition = transform.position;
         _serverEntity = GetComponent<ServerEntity>();
