@@ -1,12 +1,13 @@
 ﻿using Game.Common;
+using System;
 
 namespace Game.Server.Systems
 {
-    public abstract class SystemBase 
+    public abstract class SystemBase
     {
         public GameWorld World { get; set; }
         public PacketDispatcher PacketDispatcher { get; set; }
-        public SystemBase(GameWorld world, PacketDispatcher packetDispatcher) 
+        public SystemBase(GameWorld world, PacketDispatcher packetDispatcher)
         {
             World = world;
             PacketDispatcher = packetDispatcher;
