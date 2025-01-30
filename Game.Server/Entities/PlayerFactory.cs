@@ -1,8 +1,8 @@
 ﻿using Arch.Core;
+using Arch.Core.Extensions;
 using Game.Common.Enums;
 using Game.Server.Components;
 using LiteNetLib;
-using System;
 using System.Numerics;
 
 namespace Game.Server.Entities
@@ -17,14 +17,13 @@ namespace Game.Server.Entities
                 new NameComponent { Name = username },
                 new PositionComponent { Value = new Vector2(0, 0) },
                 new HitboxComponent { Width = 1f, Height = 1f },
-                new PlayerInputComponent { InputVector = new Vector2(0, 0) },
+                new PlayerInputComponent { MovemenetVector = new Vector2(0, 0), MousePosition = new Vector2(0 ,0), Fire = false },
                 new VelocityComponent { Value = new Vector2(0, 0) },
-                new MovementSpeedComponent { Value = 15f },
+                new MovementSpeedComponent { Value = 10f },
                 new HealthComponent { MaxValue = 100, CurrentValue = 100 },
                 new ManaComponent { MaxValue = 100, CurrentValue = 100 },
-                new NewEntityTag { },
-                new HealthDirtyTag { },
-                new ManaDirtyTag { }
+                new SelectedWeaponComponent { Weapon = WeaponFactory.CreateRifle(world).Reference() },
+                new NewEntityTag { }
                 );
 
             return playerEntity;

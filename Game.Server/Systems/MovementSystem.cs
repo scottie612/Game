@@ -38,8 +38,8 @@ namespace Game.Server.Systems
             {
                 if (peer.Id == ncc.Peer.Id)
                 {
-                    pic.InputVector.X = packet.XComponent;
-                    pic.InputVector.Y = packet.YComponent;
+                    pic.MovemenetVector.X = packet.XComponent;
+                    pic.MovemenetVector.Y = packet.YComponent;
                 }
             });
         }
@@ -48,7 +48,7 @@ namespace Game.Server.Systems
         {
             World.World.Query(in _inputQuery, (Entity entity, ref VelocityComponent vel, ref PlayerInputComponent pic) =>
             {
-                vel.Value = pic.InputVector.NormalizeSafe();
+                vel.Value = pic.MovemenetVector.NormalizeSafe();
             });
         }
 

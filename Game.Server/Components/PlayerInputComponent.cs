@@ -4,11 +4,8 @@ namespace Game.Server.Components
 {
     public struct PlayerInputComponent
     {
-        public Vector2 InputVector;
-        public bool MousePosition;
-        public bool Ability1;
-        public bool Ability2;
-        public bool Ability3;
-        public bool Ability4;
+        public Vector2 MovemenetVector;
+        public Vector2 MousePosition;
+        public bool Fire;
     }
 }

@@ -4,5 +4,6 @@
     {
         Player,
         FireBall,
+        Bullet,
     }
 }
