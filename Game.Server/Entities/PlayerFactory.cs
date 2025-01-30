@@ -16,7 +16,7 @@ namespace Game.Server.Entities
                 new EntityTypeComponent { Type = EntityType.Player },
                 new NameComponent { Name = username },
                 new PositionComponent { Value = new Vector2(0, 0) },
-                new HitboxComponent { Width = 1f, Height = 1f },
+                new HitboxComponent { Width = 1f, Height = 2f },
                 new PlayerInputComponent { MovemenetVector = new Vector2(0, 0), MousePosition = new Vector2(0 ,0), Fire = false },
                 new VelocityComponent { Value = new Vector2(0, 0) },
                 new MovementSpeedComponent { Value = 10f },
