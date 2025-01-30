@@ -19,6 +19,8 @@ namespace Game.Server.Entities
                     new PositionComponent { Value = startingPosition.Value },
                     new VelocityComponent { Value = direction },
                     new MovementSpeedComponent { Value = weapon.Entity.Get<MovementSpeedComponent>().Value },
+                    new DamageComponent { Damage = weapon.Entity.Get<DamageComponent>().Damage, DamageType = weapon.Entity.Get<DamageComponent>().DamageType },
+                    new HitboxComponent { Width = 0.5f, Height = 0.5f },
                     new DestroyAfterDistanceComponent { Distance = weapon.Entity.Get<RangeComponent>().Value, StartingPosition = startingPosition.Value },
                     new ProjectileTag { },
                     new NewEntityTag { }

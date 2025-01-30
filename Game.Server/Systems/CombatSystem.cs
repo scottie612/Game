@@ -1,4 +1,5 @@
-﻿using Arch.Core;
+﻿using Arch.Buffer;
+using Arch.Core;
 using Arch.Core.Extensions;
 using Game.Common;
 using Game.Packets;
@@ -6,6 +7,7 @@ using Game.Server.Components;
 using Game.Server.Entities;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace Game.Server.Systems
 {
@@ -14,7 +16,8 @@ namespace Game.Server.Systems
         private QueryDescription _recieveActionRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent, PlayerInputComponent>();
         private QueryDescription _cooldownQuery = new QueryDescription().WithAll<WeaponTag, CooldownComponent>();
         private QueryDescription _fireQuery = new QueryDescription().WithAll<SelectedWeaponComponent, PlayerInputComponent>();
-        
+        private QueryDescription _damageOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, DamageComponent>();
+        private QueryDescription _hitboxQuery = new QueryDescription().WithAll<HitboxComponent, PositionComponent, HealthComponent>();
 
         private ILogger<CombatSystem> _logger;
         public CombatSystem(GameWorld world, PacketDispatcher packetDispatcher, ILogger<CombatSystem> logger) : base(world, packetDispatcher)
@@ -27,6 +30,7 @@ namespace Game.Server.Systems
         {
             UpdateWeaponCooldowns(deltaTime);
             FireWeapon();
+            DamageOnCollision(deltaTime);
         }
 
         public void HandleActionRequest(NetPeer peer, ActionRequestPacket packet)
@@ -46,7 +50,6 @@ namespace Game.Server.Systems
             World.World.Query(in _cooldownQuery, (Entity entity, ref CooldownComponent cc) =>
             {
                 cc.TimeLeft -= deltaTime;
-                
             });
         }
 
@@ -56,11 +59,11 @@ namespace Game.Server.Systems
             {
                 if (!pic.Fire)
                     return;
-                
+
                 //Check if current weapon is on cooldown
-                if(swc.Weapon.Entity.TryGet<CooldownComponent>(out var cooldownComponent))
+                if (swc.Weapon.Entity.TryGet<CooldownComponent>(out var cooldownComponent))
                 {
-                    if(cooldownComponent.TimeLeft > 0)
+                    if (cooldownComponent.TimeLeft > 0)
                     {
                         _logger.LogTrace($"Weapon on cooldown. Time left: {cooldownComponent.TimeLeft}");
                         pic.Fire = false;
@@ -72,19 +75,123 @@ namespace Game.Server.Systems
                         cooldownComponent.TimeLeft = cooldownComponent.Cooldown;
                         swc.Weapon.Entity.Set(cooldownComponent);
                     }
+                }
 
-                }                
-                   
                 //Fire weapon
                 ProjectileFactory.CreateBullet(World.World, ref entity, ref swc.Weapon, pic.MousePosition);
                 pic.Fire = false;
             });
- 
-
         }
+        private void DamageOnCollision(float deltaTime)
+        {
+            World.World.Query(in _damageOnCollisionQuery, (Entity projectileEntity, ref PositionComponent projectilePosition, ref DamageComponent projectileDamage) =>
+            {
+                var buffer = new CommandBuffer();
+                var projectileDam = projectileDamage.Damage;
+                var projectilePos = projectilePosition.Value;
 
 
+                //If entity has a hitbox, caluclate if any other entities with a hitbox and health component are within the hitbox
+                if (projectileEntity.TryGet<HitboxComponent>(out var projectileHitbox))
+                {
+                    World.World.Query(in _hitboxQuery, (Entity targetEntity, ref HitboxComponent targetHitbox, ref PositionComponent targetPosition, ref HealthComponent targetHealth) =>
+                    {
+                        if (projectileEntity == targetEntity)
+                            return;
+                        if (projectileEntity.Get<CasterComponent>().CastingEntity == targetEntity)
+                            return;
 
+                        float axMin = projectilePos.X + projectileHitbox.XOffset;
+                        float axMax = axMin + projectileHitbox.Width;
+                        float ayMin = projectilePos.Y + projectileHitbox.YOffset;
+                        float ayMax = ayMin + projectileHitbox.Height;
+
+                        // Calculate the bounding box for the second entity
+                        float bxMin = targetPosition.Value.X + targetHitbox.XOffset;
+                        float bxMax = bxMin + targetHitbox.Width;
+                        float byMin = targetPosition.Value.Y + targetHitbox.YOffset;
+                        float byMax = byMin + targetHitbox.Height;
+
+                        var projectileVelocity = projectileEntity.Get<VelocityComponent>().Value;
+                        var targetVelocity = targetEntity.Get<VelocityComponent>().Value;
+
+                        var relativeVelocity = projectileVelocity - targetVelocity;
+
+                        float txMin = (relativeVelocity.X > 0) ? (bxMin - axMax) / relativeVelocity.X : (bxMax - axMin) / relativeVelocity.X;
+                        float txMax = (relativeVelocity.X > 0) ? (bxMax - axMin) / relativeVelocity.X : (bxMin - axMax) / relativeVelocity.X;
+
+                        // Compute entry/exit times along Y axis
+                        float tyMin = (relativeVelocity.Y > 0) ? (byMin - ayMax) / relativeVelocity.Y : (byMax - ayMin) / relativeVelocity.Y;
+                        float tyMax = (relativeVelocity.Y > 0) ? (byMax - ayMin) / relativeVelocity.Y : (byMin - ayMax) / relativeVelocity.Y;
+
+                        // Find the earliest entry and latest exit time
+                        float tEnter = Math.Max(txMin, tyMin);
+                        float tExit = Math.Min(txMax, tyMax);
+
+                        // If tEnter > tExit, no collision; also limit check to this frame (deltaTime)
+                        if (tEnter > tExit || tEnter < 0 || tEnter > deltaTime)
+                            return;
+
+                        targetHealth.CurrentValue -= projectileDam;
+                        buffer.Add<HealthDirtyTag>(targetEntity);
+                        buffer.Add<DeleteEntityTag>(projectileEntity);
+                        _logger.LogTrace($"Entity {targetEntity.Id} hit by projectile {projectileEntity.Id}. Health: {targetHealth.CurrentValue}");
+
+
+                    });
+                }
+                else
+                {  //if not, caluclate if it's positon is within any other entities with a hitbox and health component.
+                    World.World.Query(in _hitboxQuery, (Entity targetEntity, ref HitboxComponent targetHitbox, ref PositionComponent targetPosition, ref HealthComponent targetHealth) =>
+                    {
+                        if (projectileEntity == targetEntity)
+                            return;
+                        if (projectileEntity.Get<CasterComponent>().CastingEntity == targetEntity)
+                            return;
+
+                        // Calculate the bounding box for the target entity
+                        float bxMin = targetPosition.Value.X + targetHitbox.XOffset;
+                        float bxMax = bxMin + targetHitbox.Width;
+                        float byMin = targetPosition.Value.Y + targetHitbox.YOffset;
+                        float byMax = byMin + targetHitbox.Height;
+
+                        var projectileVelocity = projectileEntity.Get<VelocityComponent>().Value;
+                        var targetVelocity = targetEntity.Get<VelocityComponent>().Value;
+
+                        var relativeVelocity = projectileVelocity - targetVelocity;
+
+                        // Compute entry/exit times along X axis
+                        float txMin = (relativeVelocity.X > 0) ? (bxMin - projectilePos.X) / relativeVelocity.X
+                                                               : (bxMax - projectilePos.X) / relativeVelocity.X;
+                        float txMax = (relativeVelocity.X > 0) ? (bxMax - projectilePos.X) / relativeVelocity.X
+                                                               : (bxMin - projectilePos.X) / relativeVelocity.X;
+
+                        // Compute entry/exit times along Y axis
+                        float tyMin = (relativeVelocity.Y > 0) ? (byMin - projectilePos.Y) / relativeVelocity.Y
+                                                               : (byMax - projectilePos.Y) / relativeVelocity.Y;
+                        float tyMax = (relativeVelocity.Y > 0) ? (byMax - projectilePos.Y) / relativeVelocity.Y
+                                                               : (byMin - projectilePos.Y) / relativeVelocity.Y;
+
+                        // Find the earliest entry and latest exit time
+                        float tEnter = Math.Max(txMin, tyMin);
+                        float tExit = Math.Min(txMax, tyMax);
+
+                        // If tEnter > tExit, no collision; also limit check to this frame (deltaTime)
+                        if (tEnter > tExit || tEnter < 0 || tEnter > deltaTime)
+                            return;
+
+                        targetHealth.CurrentValue -= projectileDam;
+                        buffer.Add<HealthDirtyTag>(targetEntity);
+                        buffer.Add<DeleteEntityTag>(projectileEntity);
+                        _logger.LogTrace($"Entity {targetEntity.Id} hit by projectile {projectileEntity.Id}. Health: {targetHealth.CurrentValue}");
+
+
+                    });
+                }
+                buffer.Playback(World.World);
+
+            });
+        }
 
     }
 }
