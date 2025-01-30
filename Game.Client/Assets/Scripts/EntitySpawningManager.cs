@@ -20,6 +20,7 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>
 
     public void OnEntitySpawnedPacketRecieved(NetPeer peer, EntitySpawnedPacket packet)
     {
+        Debug.Log($"EntitySpawnedPacket Recieved! PacketType: {packet.Type}, EntityID:{packet.EntityID}, EntityName: {packet.EntityName}");
         ServerEntity spawnedEntity = null;
         switch (packet.Type)
         {
@@ -40,12 +41,21 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>
                 spawnedEntity.EntityID = packet.EntityID;
                 spawnedEntity.EntityName = packet.EntityName;
                 break;
+            case EntityType.Bullet:
+                spawnedEntity = Instantiate(FireballPrefab, new Vector3(packet.StartingX, packet.StartingY, 0), Quaternion.identity);
+                spawnedEntity.EntityID = packet.EntityID;
+                spawnedEntity.EntityName = packet.EntityName;
+                break;
             default:
                 Debug.Log("Entity Type not implemented for spawnning");
                 break;
         }
             
-        SpawnedEntites?.Add(spawnedEntity.EntityID, spawnedEntity.gameObject);
+        if(spawnedEntity != null)
+        {
+            SpawnedEntites.Add(spawnedEntity.EntityID, spawnedEntity.gameObject);
+        }
+        
     }
 
     public void OnEntityDespawnedPacketRecieved(NetPeer peer, EntityDespawnedPacket packet)

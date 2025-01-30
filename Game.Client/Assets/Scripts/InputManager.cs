@@ -24,8 +24,7 @@ public class InputManager : Singleton<InputManager>
             _previousMovementInput = _currentMovementInput;
         }
 
-        // NOT USED
-        if (Input.GetKeyDown(KeyCode.Alpha1)) 
+        if (Input.GetKeyDown(KeyCode.Mouse0)) 
         {
             var mousePos = Input.mousePosition;
             mousePos.x -= Screen.width / 2;
@@ -33,8 +32,8 @@ public class InputManager : Singleton<InputManager>
 
             mousePos = mousePos.normalized;
 
+            Debug.Log($"Fire Direction: {mousePos}");
             var packet = new ActionRequestPacket();
-            packet.AbilityIndex = 0;
             packet.CastDirection = new System.Numerics.Vector2(mousePos.x,mousePos.y);
             NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
 

@@ -86,14 +86,17 @@ namespace Game.Server.Systems
                         }
                         else
                         {
-                            packet.EntityName = newEntity.Id.ToString();
+                            packet.EntityName = existingEntity.Id.ToString();
                         }
+                        buffer.Add<HealthDirtyTag>(existingEntity);
+                        buffer.Add<ManaDirtyTag>(existingEntity);
 
                         PacketDispatcher.Enqueue(packet);
                     });
                 }
 
-
+                buffer.Add<HealthDirtyTag>(newEntity);
+                buffer.Add<ManaDirtyTag>(newEntity);
                 buffer.Remove<NewEntityTag>(newEntity);
 
             });

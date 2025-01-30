@@ -11,24 +11,20 @@ namespace Game.Packets
     {
         public PacketType PacketType => PacketType.ActionRequest;
 
-        public DeliveryMethod DeliveryMethod => DeliveryMethod.ReliableOrdered;
+        public DeliveryMethod DeliveryMethod => DeliveryMethod.Unreliable;
 
         public bool IsBatched => false;
 
         public NetPeer? NetPeer { get; set; }
 
-        public int AbilityIndex { get; set; }
-
         public Vector2 CastDirection { get; set; }
          
         public void Serialize(NetDataWriter writer)
         {
-            writer.Put(AbilityIndex);
             writer.Put(CastDirection);
         }
         public void Deserialize(NetDataReader reader)
         {
-            AbilityIndex = reader.GetInt();
             CastDirection = reader.GetVector2();
         }
 
