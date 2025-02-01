@@ -27,13 +27,15 @@ namespace Game.Server.Systems
         private NetDataWriter _writer;
 
         private readonly ServerOptions _serverOptions;
+        private readonly EncryptionOptions _encryptionOptions;
         private readonly ILogger<NetworkingSystem> _logger;
 
         private QueryDescription _networkConnectionQuery = new QueryDescription().WithAll<NetworkConnectionComponent>();
 
-        public NetworkingSystem(GameWorld world, PacketDispatcher packetDispatcher, IOptions<ServerOptions> serverOptions, ILogger<NetworkingSystem> logger) : base(world, packetDispatcher)
+        public NetworkingSystem(GameWorld world, PacketDispatcher packetDispatcher, IOptions<ServerOptions> serverOptions, IOptions<EncryptionOptions> encryptionOptions, ILogger<NetworkingSystem> logger) : base(world, packetDispatcher)
         {
             _serverOptions = serverOptions.Value;
+            _encryptionOptions = encryptionOptions.Value;
             _logger = logger;
             _writer = new NetDataWriter();
             _netManager = new NetManager(this)
@@ -75,34 +77,24 @@ namespace Game.Server.Systems
 
            
 
-            //TODO: Add Null Checks and Validations. Move to separate method/class?
+            //TODO: Add Null Checks and Validations. Move to separate method/class? Maybe in seperate method, return bool and error/success message.
             Task.Run(async () =>
             {
+                var clientPublicKey = request.Data.GetString();
                 var encryptedAesKey = request.Data.GetString();
                 var encryptedAuthData = request.Data.GetString();
                 var signature = request.Data.GetString();
 
                 //Decrypt AES key with private key
-                var aesKey = EncryptionHelper.Decrypt(EncryptionHelper.GetPrivateKey(), encryptedAesKey);
+                var aesKey = EncryptionHelper.Decrypt(_encryptionOptions.PrivateKey, encryptedAesKey);
 
                 //Decrypt AuthData with AES key
                 var authDataJson = EncryptionHelper.DecryptAes(aesKey, encryptedAuthData);
                 var authData = JsonConvert.DeserializeObject<AuthData>(authDataJson);
 
 
-                //Get the User's Public Key from PlayFab
-                var userPublicKey = string.Empty;
-                var userDataResult = await PlayFabServerAPI.GetUserDataAsync(new GetUserDataRequest()
-                {
-                    PlayFabId = authData.PlayFabId,
-                    Keys = new List<string> { "PublicKey" }
-                });
-
-                userDataResult.Result.Data.TryGetValue("PublicKey", out var userPublicKeyRecord);
-                userPublicKey = userPublicKeyRecord.Value;
-
                 //Validate Signature using User's Public Key
-                var isValidSignature = EncryptionHelper.ValidateSignature(userPublicKey, authDataJson, signature);
+                var isValidSignature = EncryptionHelper.ValidateSignature(clientPublicKey, authDataJson, signature);
 
                 //Validate Protocol Version
 

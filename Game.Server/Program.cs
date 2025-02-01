@@ -15,6 +15,8 @@ namespace Game.Server
         {
             var builder = Host.CreateDefaultBuilder(args);
             builder.UseContentRoot(Directory.GetCurrentDirectory());
+            builder.ConfigureEncryption();
+
             builder.ConfigureServices((hostContext, services) =>
             {
                 services.AddLogging(logging =>
@@ -24,6 +26,7 @@ namespace Game.Server
                 });
 
                 services.Configure<ServerOptions>(hostContext.Configuration.GetSection("ServerOptions"));
+                services.Configure<EncryptionOptions>(hostContext.Configuration.GetSection("EncryptionOptions"));
                 services.ConfigurePlayFab(hostContext.Configuration.GetSection("PlayFabOptions"));
                 services.AddSingleton<PacketDispatcher>();
                 services.AddSingleton<GameWorld>();

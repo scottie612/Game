@@ -53,25 +53,7 @@ public class PlayFabLoginManager : MonoBehaviour
                 Globals.SessionTicket = successResult.SessionTicket;
                 Globals.PlayFabUserID = successResult.PlayFabId;
                 Globals.PlayFabUsername = successResult.InfoResultPayload.AccountInfo.Username;
-                
-                var privateKey = EncryptionHelper.GetPrivateKey();
-                var publicKey = EncryptionHelper.GetPublicKey();
-
-                PlayFabClientAPI.UpdateUserData(new UpdateUserDataRequest
-                {
-                    Data = new Dictionary<string, string>
-                    {
-                        {"PublicKey", publicKey}
-                    },
-                },
-                result =>
-                {
-                    Debug.Log("Successfully Stored Public Key in UserData");
-                },
-                error =>
-                {
-                    Debug.LogError("Failed to Store Public Key in UserData");
-                });
+                Globals.RSAKeypair = EncryptionHelper.GenerateKeyPair();
 
                 //Navigate to Game
                 SceneManager.LoadScene("World");

@@ -32,54 +32,38 @@ public class NetworkManager : Singleton<NetworkManager>, INetEventListener
         _netManager.DisconnectTimeout = 300000;
         _netManager.Start();
 
-
-
-        //Get Server Public Key
-        var publicKeyRequest = new GetTitleDataRequest()
+        //Build AuthData
+        var authData = new AuthData()
         {
-            Keys = new List<string>() { "PublicKey" }
+            PlayFabId = Globals.PlayFabUserID,
+            SessionTicket = Globals.SessionTicket,
+            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            ProtocolVersion = 1,
+            DeviceFingerprint = "DeviceFingerprint",
+            Nonce = Guid.NewGuid().ToString(),
         };
 
-        var serverPublicKey = string.Empty;
-        PlayFabClientAPI.GetTitleData(publicKeyRequest, result =>
-        {
-            result.Data.TryGetValue("PublicKey", out serverPublicKey);
+        var publicKey = EncryptionHelper.GetPublicKey(Globals.RSAKeypair);
 
-            //Build AuthData
-            var authData = new AuthData()
-            {
-                PlayFabId = Globals.PlayFabUserID,
-                SessionTicket = Globals.SessionTicket,
-                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                ProtocolVersion = 1,
-                DeviceFingerprint = "DeviceFingerprint",
-                Nonce = Guid.NewGuid().ToString(),
-            };
+        //Generate AES Key
+        var aesKey = EncryptionHelper.GenerateAesKey();
 
-            //Generate AES Key
-            var aesKey = EncryptionHelper.GenerateAesKey();
+        //Encrypt AES Key with Server Public Key
+        var encryptedAesKey = EncryptionHelper.Encrypt(Globals.ServerPublicKey, aesKey);
 
-            //Encrypt AES Key with Server Public Key
-            var encryptedAesKey = EncryptionHelper.Encrypt(serverPublicKey, aesKey);
+        //Encrypt AuthData with AES Key
+        var encryptedAuthData = EncryptionHelper.EncryptAes(aesKey, JsonConvert.SerializeObject(authData));
 
-            //Encrypt AuthData with AES Key
-            var encryptedAuthData = EncryptionHelper.EncryptAes(aesKey, JsonConvert.SerializeObject(authData));
+        //Sign AuthData with Private Key
+        var signature = EncryptionHelper.Sign(EncryptionHelper.GetPrivateKey(Globals.RSAKeypair), JsonConvert.SerializeObject(authData));
 
-            //Sign AuthData with Private Key
-            var signature = EncryptionHelper.Sign(EncryptionHelper.GetPrivateKey(), JsonConvert.SerializeObject(authData));
+        _writer.Put(publicKey);
+        _writer.Put(encryptedAesKey);
+        _writer.Put(encryptedAuthData);
+        _writer.Put(signature);
 
-            _writer.Put(encryptedAesKey);
-            _writer.Put(encryptedAuthData);
-            _writer.Put(signature);
-            
-            _netManager.Connect(ip, port, _writer);
-            _writer.Reset();
-
-        }, error =>
-        {
-            Debug.LogError(error.ErrorMessage);
-        });
-
+        _netManager.Connect(ip, port, _writer);
+        _writer.Reset();
     }
 
     private void FixedUpdate()

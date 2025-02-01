@@ -1,8 +1,6 @@
-﻿using Game.Common.Encryption;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PlayFab;
-using System.Threading.Tasks;
 
 namespace Game.Server.Startup
 {
@@ -12,17 +10,6 @@ namespace Game.Server.Startup
         {
             PlayFabSettings.staticSettings.TitleId = config.GetValue<string>("TitleID");
             PlayFabSettings.staticSettings.DeveloperSecretKey = config.GetValue<string>("DeveloperSecretKey");
-
-            ///Set Public Key in PlayFab Title Data
-            Task.Run(async () =>
-            {
-                var result = await PlayFabServerAPI.SetTitleDataAsync(new PlayFab.ServerModels.SetTitleDataRequest
-                {
-                    Key = "PublicKey",
-                    Value = EncryptionHelper.GetPublicKey()
-
-                });
-            }).Wait();
 
             return services;
         }
