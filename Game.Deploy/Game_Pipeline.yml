@@ -1,0 +1,25 @@
+trigger: none
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'aafbb9e4-97ea-4d84-981e-f33051962c90'
+  imageRepository: 'Game-Server'
+  #containerRegistry: 'repoistoryname.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Game.Server/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+
+stages:
+  - stage: Build
+    jobs:
+    - job: Build_Server
+      steps:
+      - task: Docker@2
+        displayName: Build and push an image to container registry
+        inputs:
+          command: build
+          repository: $(imageRepository)
+          dockerfile: $(dockerfilePath)
+          containerRegistry: $(dockerRegistryServiceConnection)
+          tags: |
+            $(tag)
