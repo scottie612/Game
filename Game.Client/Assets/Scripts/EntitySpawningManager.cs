@@ -30,7 +30,7 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>
                 spawnedEntity.EntityName = packet.EntityName;
 
                 // If the entity is the local player, Bind the camera to it
-                if(spawnedEntity.EntityName == Globals.PlayFabUsername)
+                if (spawnedEntity.EntityName == Globals.PlayFabUsername)
                 {
                    spawnedEntity.gameObject.AddComponent<CameraFollowServerEntity>();
                 }
