@@ -2,12 +2,15 @@
 using Arch.Core;
 using Arch.Core.Extensions;
 using Game.Common;
+using Game.Common.Enums;
+using Game.Common.Random;
 using Game.Packets;
 using Game.Server.Components;
 using Game.Server.Entities;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Numerics;
 
 namespace Game.Server.Systems
 {
@@ -18,6 +21,7 @@ namespace Game.Server.Systems
         private QueryDescription _fireQuery = new QueryDescription().WithAll<SelectedWeaponComponent, PlayerInputComponent>();
         private QueryDescription _damageOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, DamageComponent>();
         private QueryDescription _hitboxQuery = new QueryDescription().WithAll<HitboxComponent, PositionComponent, HealthComponent>();
+        private QueryDescription _deathQuery = new QueryDescription().WithAll<HealthComponent>();
 
         private ILogger<CombatSystem> _logger;
         public CombatSystem(GameWorld world, PacketDispatcher packetDispatcher, ILogger<CombatSystem> logger) : base(world, packetDispatcher)
@@ -31,6 +35,7 @@ namespace Game.Server.Systems
             UpdateWeaponCooldowns(deltaTime);
             FireWeapon();
             DamageOnCollision(deltaTime);
+            CheckForDeath();
         }
 
         public void HandleActionRequest(NetPeer peer, ActionRequestPacket packet)
@@ -191,6 +196,35 @@ namespace Game.Server.Systems
                 buffer.Playback(World.World);
 
             });
+        }
+
+        private void CheckForDeath()
+        {
+            var buffer = new CommandBuffer();
+
+            World.World.Query(in _deathQuery, (Entity entity, ref HealthComponent hc) =>
+            {
+                if (hc.CurrentValue <= 0)
+                {
+                    _logger.LogTrace($"Entity {entity.Id} has died. Respawning...");
+
+                    if (entity.TryGet<EntityTypeComponent>(out var entityType))
+                    {
+                        //If the entity is a player, respawn them
+                        if (entityType.Type == EntityType.Player)
+                        {
+                            buffer.Set(entity, new PositionComponent { Value = new Vector2(RandomHelper.RandomInt(-100, 100), RandomHelper.RandomInt(-100, 100)) });
+                            buffer.Set(entity, new VelocityComponent { Value = new Vector2(0, 0) });
+                            buffer.Set(entity, new PlayerInputComponent { MovemenetVector = new Vector2(0, 0), Fire = false, MousePosition = new Vector2(0, 0) });
+                            buffer.Set(entity, new HealthComponent { CurrentValue = 100, MaxValue = 100 });
+                            buffer.Set(entity, new ManaComponent { CurrentValue = 100, MaxValue = 100 });
+                            buffer.Add<PositionDiryTag>(entity);
+                        }
+                    }
+
+                }
+            });
+            buffer.Playback(World.World);
         }
 
     }
