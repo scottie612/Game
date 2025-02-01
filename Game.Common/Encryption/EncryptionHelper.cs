@@ -6,17 +6,27 @@ namespace Game.Common.Encryption
 {
     public static class EncryptionHelper
     {
-
         #region RSA
-        private static RSA _rsa = RSA.Create(2048);
-        public static string GetPublicKey()
+        public static RSA FromXML(string xmlKey)
         {
-            return _rsa.ToXmlString(false);
+            var rsa = RSA.Create();
+            rsa.FromXmlString(xmlKey);
+            return rsa;
         }
 
-        public static string GetPrivateKey()
+        public static RSA GenerateKeyPair()
         {
-            return _rsa.ToXmlString(true);
+            return RSA.Create();
+        }
+
+        public static string GetPublicKey(RSA rsa)
+        {
+            return rsa.ToXmlString(false);
+        }
+
+        public static string GetPrivateKey(RSA rsa)
+        {
+            return rsa.ToXmlString(true);
         }
 
         public static string Encrypt(string publicKey, string data)
@@ -67,6 +77,7 @@ namespace Game.Common.Encryption
                 return isValid;
             }
         }
+
         #endregion
         #region AES
 
