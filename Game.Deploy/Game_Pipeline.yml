@@ -1,5 +1,7 @@
 trigger: none
 
+pool: Default
+
 variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'aafbb9e4-97ea-4d84-981e-f33051962c90'
