@@ -59,7 +59,6 @@ stages:
                   projectName: 'game-server'
                   action: 'Run services'
                   detached: true 
-                  dockerComposeFileArgs:
                 env:
                   IMAGE_TAG: $(tag)
                   PlayFabOptions__TitleID: $(PlayFabOptions__TitleID)
