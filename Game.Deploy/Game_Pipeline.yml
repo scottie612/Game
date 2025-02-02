@@ -16,6 +16,7 @@ stages:
     jobs:
     - job: Build_Server
       steps:
+      - task: DockerInstaller@0
       - task: Docker@2
         displayName: Build and Push
         inputs:
