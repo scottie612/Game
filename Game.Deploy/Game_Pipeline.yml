@@ -47,6 +47,7 @@ stages:
             steps:
               # TODO: Generate Encryption Keys and inject as ENV variables.
               - task: DockerInstaller@0
+                displayName: Install Docker CLI
               - task: CmdLine@2
                 displayName: Deploy Image
                 inputs:
