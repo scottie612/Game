@@ -48,7 +48,7 @@ stages:
               # TODO: Generate Encryption Keys and inject as ENV variables.
               - task: DockerInstaller@0
               - task: CmdLine@2
-                displayname: Deploy Image
+                displayName: Deploy Image
                 inputs:
                   script: |
                     docker run -d $(repository):(tag) -p 7777:7777
