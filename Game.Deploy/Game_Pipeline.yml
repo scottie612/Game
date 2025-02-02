@@ -3,7 +3,7 @@ trigger: none
 pool: Default
 
 variables:
-  tag: '$(Build.BuildId)'
+  tag: '$(Build.BuildNumber)'
 
 
 stages:
