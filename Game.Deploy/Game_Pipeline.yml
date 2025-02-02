@@ -58,6 +58,7 @@ stages:
                   dockerComposeFile: '$(Build.SourcesDirectory)/Game.Server/docker-compose.yml'
                   projectName: 'game-server'
                   action: 'Run services'
+                  dockerComposeCommand: up
                   detached: true 
                 env:
                   IMAGE_TAG: $(tag)
