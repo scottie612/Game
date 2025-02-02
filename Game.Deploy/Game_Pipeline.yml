@@ -51,15 +51,11 @@ stages:
               # TODO: Generate Encryption Keys and inject as ENV variables? also need to figure out way for client. (streamingAssets)
               - task: DockerInstaller@0
                 displayName: Install Docker CLI
-              - task: DockerCompose@1
-                displayName: 'Build and Run Docker Compose'
+              - task: CmdLine@2
+                displayName: Deploy Server
                 inputs:
-                  containerregistrytype: 'Container Registry'  # Use 'Azure Container Registry' if applicable
-                  dockerComposeFile: '**/docker-compose.yml'
-                  projectName: 'game-server'
-                  action: 'Run services'
-                  dockerComposeCommand: compose up
-                  detached: true 
+                  script: |
+                    docker compose up -d -f '$(Build.SourcesDirectory)/Game.Server/docker-compose.yml'
                 env:
                   IMAGE_TAG: $(tag)
                   PlayFabOptions__TitleID: $(PlayFabOptions__TitleID)
