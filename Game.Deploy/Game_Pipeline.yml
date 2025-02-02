@@ -12,6 +12,7 @@ stages:
     - job: Build_Server
       steps:
       - task: DockerInstaller@0
+        displayName: Install Docker CLI
       - task: Docker@2
         displayName: Build Image
         inputs:
@@ -46,12 +47,11 @@ stages:
             steps:
               # TODO: Generate Encryption Keys and inject as ENV variables.
               - task: DockerInstaller@0
-              - task: Docker@2
-                displayName: 'Run Docker Container'
+              - task: CmdLine@2
+                displayname: Deploy Image
                 inputs:
-                    command: 'run'
-                    container: '$(repository):(tag)'
-                    arguments: '-d -p 7777:7777'
+                script: |
+                    docker run -d $(repository):(tag) -p 7777:7777
 
     - deployment: Deploy_Client
       displayName: Deploy Client
