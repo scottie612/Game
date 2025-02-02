@@ -56,18 +56,6 @@ stages:
                   IMAGE_TAG: $(tag)
                   PlayFabOptions__TitleID: $(PlayFabOptions__TitleID)
                   PlayFabOptions__DeveloperSecretKey: $(PlayFabOptions__DeveloperSecretKey)
-              - task: DockerCompose@1
-                displayName: 'Build and Run Docker Compose'
-                inputs:
-                  containerregistrytype: 'Container Registry'  # Use 'Azure Container Registry' if applicable
-                  dockerComposeFile: '$(Build.SourcesDirectory)/Game.Server/docker-compose.yml'
-                  projectName: 'game-server'
-                  dockerComposeCommand: up
-                  detached: true 
-                env:
-                  IMAGE_TAG: $(tag)
-                  PlayFabOptions__TitleID: $(PlayFabOptions__TitleID)
-                  PlayFabOptions__DeveloperSecretKey: $(PlayFabOptions__DeveloperSecretKey)
 
 
     - deployment: Deploy_Client
