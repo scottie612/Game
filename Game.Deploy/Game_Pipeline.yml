@@ -4,8 +4,10 @@ pool: Default
 
 variables:
 - group: 'DEV - Environment Variables'
-  repository: 'game-server'
-  tag: '$(Build.BuildNumber)'
+- name: repository
+  value: 'game-server'
+- name: tag
+  value: '$(Build.BuildNumber)'
 
 stages:
   - stage: Build
