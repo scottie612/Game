@@ -30,12 +30,14 @@ stages:
 
             echo "Build.SourcesDirectory:"
             echo "$(Build.SourcesDirectory)"
+
       - task: Docker@2
         displayName: Build and push an image to container registry
         inputs:
           command: build
           repository: $(imageRepository)
           dockerfile: $(dockerfilePath)
+          buildContext: $(Build.SourcesDirectory)
           containerRegistry: $(dockerRegistryServiceConnection)
           tags: |
             $(tag)

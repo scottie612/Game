@@ -7,8 +7,8 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["../Game.Server/Game.Server.csproj", "Game.Server/"]
-COPY ["../Game.Common/Game.Common.csproj", "Game.Common/"]
+COPY ["./Game.Server/Game.Server.csproj", "Game.Server/"]
+COPY ["./Game.Common/Game.Common.csproj", "Game.Common/"]
 RUN dotnet restore "./Game.Server/Game.Server.csproj"
 COPY . .
 WORKDIR "/src/Game.Server"
