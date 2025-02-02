@@ -60,9 +60,8 @@ stages:
                 displayName: 'Build and Run Docker Compose'
                 inputs:
                   containerregistrytype: 'Container Registry'  # Use 'Azure Container Registry' if applicable
-                  dockerComposeFile: '**/docker-compose.yml'
+                  dockerComposeFile: '$(Build.SourcesDirectory)/Game.Server/docker-compose.yml'
                   projectName: 'game-server'
-                  action: 'Run services'
                   dockerComposeCommand: up
                   detached: true 
                 env:
