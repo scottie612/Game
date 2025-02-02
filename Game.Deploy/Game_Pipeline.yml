@@ -26,6 +26,8 @@ stages:
           containerRegistry: $(dockerRegistryServiceConnection)
           tags: |
             $(tag)
-      - script: |
-          docker images | grep "$(tag)" | awk '{print $3}' | xargs docker rmi
-          docker images | grep "<none>" | awk '{print $3}' | xargs docker rmi 
+      - task: CmdLine@2
+        displayName: Clean up images
+        inputs:
+          script: |
+            docker images | grep "$(tag)" | awk '{print $3}' | xargs docker rmi
