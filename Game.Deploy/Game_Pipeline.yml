@@ -18,7 +18,7 @@ stages:
       steps:
       - task: CmdLine@2
         inputs:
-        script: |
+          script: |
             echo "Structure of work folder of this pipeline:"
             tree $(Agent.WorkFolder)/1
 
