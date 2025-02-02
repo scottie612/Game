@@ -51,7 +51,7 @@ stages:
                 displayName: Deploy Image
                 inputs:
                   script: |
-                    docker run -d $(repository):(tag) -p 7777:7777
+                    docker run -d $(repository):$(tag) -p 7777:7777
 
     - deployment: Deploy_Client
       displayName: Deploy Client
