@@ -3,8 +3,8 @@ trigger: none
 pool: Default
 
 variables:
+  repository: 'Game-Server'
   tag: '$(Build.BuildNumber)'
-
 
 stages:
   - stage: Build
@@ -16,7 +16,7 @@ stages:
         displayName: Build Image
         inputs:
           command: build
-          repository: 'Game-Server'
+          repository: '$(repository)'
           dockerfile: '$(Build.SourcesDirectory)/Game.Server/Dockerfile'
           buildContext: $(Build.SourcesDirectory)
           tags: |
@@ -44,11 +44,15 @@ stages:
         runOnce:
           deploy:
             steps:
-              - task: CmdLine@2
-                displayName: Hello World
+              # TODO: Generate Encryption Keys and inject as ENV variables.
+              - task: DockerInstaller@0
+              - task: Docker@2
+                displayName: 'Run Docker Container'
                 inputs:
-                  script: |
-                    echo "Hello World"
+                    command: 'run'
+                    container: '$(repository):(tag)'
+                    arguments: '-d -p 7777:7777'
+
     - deployment: Deploy_Client
       displayName: Deploy Client
       environment: DEV
