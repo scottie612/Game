@@ -45,14 +45,14 @@ stages:
         runOnce:
           deploy:
             steps:
-              # TODO: Generate Encryption Keys and inject as ENV variables.
+              # TODO: Generate Encryption Keys and inject as ENV variables? also need to figure out way for client. (streamingAssets)
               - task: DockerInstaller@0
                 displayName: Install Docker CLI
               - task: CmdLine@2
                 displayName: Deploy Image
                 inputs:
                   script: |
-                    docker run -d -p 7777:7777 $(repository):$(tag) 
+                    docker run -d -p 7777:7777/udp $(repository):$(tag) 
 
     - deployment: Deploy_Client
       displayName: Deploy Client
