@@ -3,7 +3,7 @@ trigger: none
 pool: Default
 
 variables:
-  repository: 'Game-Server'
+  repository: 'game-server'
   tag: '$(Build.BuildNumber)'
 
 stages:
