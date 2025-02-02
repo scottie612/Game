@@ -51,7 +51,7 @@ stages:
                 displayName: Deploy Server
                 inputs:
                   script: |
-                    docker compose up -d -f '$(Build.SourcesDirectory)/Game.Server/docker-compose.yml'
+                    docker compose -f '$(Build.SourcesDirectory)/Game.Server/docker-compose.yml' up -d 
                 env:
                   IMAGE_TAG: $(tag)
                   PlayFabOptions__TitleID: $(PlayFabOptions__TitleID)
