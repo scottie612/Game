@@ -31,3 +31,38 @@ stages:
         inputs:
           script: |
             docker images | grep "$(tag)" | awk '{print $3}' | xargs docker rmi
+
+    - job: Build_Client
+      steps:
+      - task: CmdLine@2
+        displayName: Hello World
+        inputs:
+          script: |
+            echo "Hello World"
+
+  - stage: Deploy
+    jobs:
+    - deployment: Deploy_Server
+      displayName: Deploy Server
+      environment: DEV'
+      strategy: 
+        runOnce:
+          deploy:
+            steps:
+              - task: CmdLine@2
+                displayName: Hello World
+                inputs:
+                  script: |
+                    echo "Hello World"
+    - deployment: Deploy_Client
+      displayName: Deploy Client
+      environment: DEV'
+      strategy: 
+        runOnce:
+          deploy:
+            steps:
+              - task: CmdLine@2
+                displayName: Hello World
+                inputs:
+                  script: |
+                    echo "Hello World"
