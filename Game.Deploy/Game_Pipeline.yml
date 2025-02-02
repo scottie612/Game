@@ -61,7 +61,6 @@ stages:
                 inputs:
                   containerregistrytype: 'Container Registry'  # Use 'Azure Container Registry' if applicable
                   dockerComposeFile: '**/docker-compose.yml'
-                  dockerComposePath: '$HOME/.docker/cli-plugins/docker-compose'
                   projectName: 'game-server'
                   action: 'Run services'
                   dockerComposeCommand: up
