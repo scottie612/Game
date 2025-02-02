@@ -1,0 +1,10 @@
+﻿
+services:
+  game-server:
+    image: game-server:${IMAGE_TAG}
+    container_name: game_server
+    ports:
+      - "7777:7777/udp"
+    environment:
+      - PlayFabOptions__TitleID=${PlayFabOptions__TitleID}
+      - PlayFabOptions__DeveloperSecretKey=${PlayFabOptions__DeveloperSecretKey}
