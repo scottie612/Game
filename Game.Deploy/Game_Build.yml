@@ -39,8 +39,9 @@ jobs:
       tree 
     displayName: "Copy License File"
   - script: |
-      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -manualLicenseFile $(Build.SourcesDirectory)/Unity_v2022.x.ulf -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/ -username "$(unityUsername)" -password "$(unityPassword)"
-
+      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -manualLicenseFile Unity_v2022.x.ulf  -username "$(unityUsername)" -password "$(unityPassword)"
+  - script: |
+      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/
 
   - task: CmdLine@2
     displayName: Hello World
