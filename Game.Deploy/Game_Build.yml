@@ -6,8 +6,8 @@ variables:
 - group: 'DEV - Environment Variables'
 - name: repository
   value: 'game-server'
-- name: unityPath
-  value:: /opt/unity/Editor/Unity 
+- name: 'unityPath'
+  value: '/opt/unity/Editor/Unity'
 
 jobs:
 - job: Build_Server
