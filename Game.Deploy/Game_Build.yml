@@ -25,11 +25,13 @@ jobs:
     displayName: Prune Dangling Images
     inputs:
       script: |
-        docker image prune -
+        docker image prune -f
 - job: Build_Client
   steps:
   - task: UnitySetupTask@2
     inputs:
+      unityHubExecutableLocation: specify
+      customUnityHubExecutableLocation: /opt/unityhub/
       unityProjectPath: $(Build.SourcesDirectory)/Game.Client/
       installEditor: false
   - task: CmdLine@2
