@@ -38,6 +38,7 @@ jobs:
       displayName: 'dotnet build $(buildConfiguration)'
   - script: |
       tree 
+      cp "$(Build.SourcesDirectory)/Game.Common/bin/$(buildConfiguration)/netstandard2.1/Game.Common.dll" "$(Build.SourcesDirectory)/Game.Client/Assets/Scripts/Assemblies/Game.Common.dll"
 
   - task: DownloadSecureFile@1
     name: unityLicense
