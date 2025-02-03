@@ -15,6 +15,7 @@ jobs:
       deploy:
         steps:
           # TODO: Generate Encryption Keys and inject as ENV variables? also need to figure out way for client. (streamingAssets)
+          - checkout: self
           - task: CmdLine@2
             displayName: Deploy Server
             inputs:
