@@ -19,6 +19,7 @@ jobs:
             displayName: Deploy Server
             inputs:
               script: |
+                tree
                 docker compose -f '$(Build.SourcesDirectory)/Game.Server/docker-compose.yml' up -d 
             env:
               IMAGE_TAG: latest
