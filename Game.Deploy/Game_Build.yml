@@ -30,7 +30,7 @@ jobs:
 - job: Build_Client
   steps:
   - script: |
-      $(unityPath) -nographics -quit -username "$(unityUsername)" -password "$(unityPassword)" -projectPath "$(Build.SourcesDirectory)"
+      $(unityPath) -nographics -quit -username "$(unityUsername)" -password "$(unityPassword)" -projectPath "$(Build.SourcesDirectory)/Game.Client/"
   - script: |
       $(unityPath) -quit -batchmode -returnlicense -username $(unityUsername) -password $(unityPassword) 
   - script: |
