@@ -16,10 +16,6 @@ using UnityEngine.SceneManagement;
 
 public class NetworkManager : Singleton<NetworkManager>, INetEventListener
 {
-
-    [SerializeField] private string ip;
-    [SerializeField] private ushort port;
-
     private NetManager _netManager;
     private NetDataWriter _writer = new NetDataWriter();
 
@@ -62,7 +58,7 @@ public class NetworkManager : Singleton<NetworkManager>, INetEventListener
         _writer.Put(encryptedAuthData);
         _writer.Put(signature);
 
-        _netManager.Connect(ip, port, _writer);
+        _netManager.Connect(Globals.ServerIP, 7777, _writer);
         _writer.Reset();
     }
 

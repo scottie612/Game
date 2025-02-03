@@ -11,4 +11,6 @@ public static class Globals
     public static string ServerPublicKey { get; set; }
 
     public static RSA RSAKeypair { get; set; }
+
+    public static string ServerIP { get; set; }
 }
