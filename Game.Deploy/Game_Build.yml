@@ -29,6 +29,16 @@ jobs:
         docker image prune -f
 - job: Build_Client
   steps:
+  - task: DotNetCoreCLI@2
+    displayName: Build Game.Common
+    inputs:
+      command: 'build'
+      projects: "**/Game.Common.csproj"
+      arguments: '--configuration $(buildConfiguration)'
+      displayName: 'dotnet build $(buildConfiguration)'
+  - script: |
+      tree 
+
   - task: DownloadSecureFile@1
     name: unityLicense
     displayName: "Download Unity License"
