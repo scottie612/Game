@@ -61,4 +61,6 @@ jobs:
       ArtifactName: 'Game.Client-$(Build.BuildNumber)' 
       publishLocation: 'Container'
   - script: |
+      tree $(Build.SourcesDirectory)
+  - script: |
       tree $(Build.ArtifactStagingDirectory)
