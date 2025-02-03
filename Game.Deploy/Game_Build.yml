@@ -7,7 +7,7 @@ variables:
 - name: repository
   value: 'game-server'
 - name: 'unityPath'
-  value: '/opt/unity/Editor/Unity'
+  value: '/opt/unity/editors/2022.3.4f1/Editor/Unity'
 
 jobs:
 - job: Build_Server
@@ -29,6 +29,15 @@ jobs:
         docker image prune -f
 - job: Build_Client
   steps:
+  - task: DownloadSecureFile@1
+    name: unityLicense
+    displayName: "Download Unity License"
+    inputs:
+        secureFile: "Unity_lic.ulf"
+  - script: |
+      mkdir -p ~/.local/share/unity3d/Unity/
+      cp "$(unityLicense.secureFilePath)" ~/.local/share/unity3d/Unity/Unity_lic.ulf
+    displayName: "Copy License File"
   - script: |
       $(unityPath) -quit -batchmode -nographics -accept-apiupdate -username $(unityUsername) -password $(unityPassword) -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/
   - script: |
