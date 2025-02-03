@@ -35,11 +35,11 @@ jobs:
     inputs:
         secureFile: "Unity_lic.ulf"
   - script: |
-      mkdir -p ~/.local/share/unity3d/Unity/
-      cp "$(unityLicense.secureFilePath)" ~/.local/share/unity3d/Unity/Unity_lic.ulf
+      cp "$(unityLicense.secureFilePath)" Unity_lic.ulf
+      tree 
     displayName: "Copy License File"
   - script: |
-      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -username $(unityUsername) -password $(unityPassword) -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/
+      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -manualLicenseFile Unity_lic.ulf -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/
   - script: |
       $(unityPath) -quit -batchmode -nographics -accept-apiupdate -username "$(unityUsername)" -password "$(unityPassword)"
   - script: |
