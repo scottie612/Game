@@ -28,12 +28,9 @@ jobs:
         docker image prune -f
 - job: Build_Client
   steps:
-  - task: UnitySetupTask@2
-    inputs:
-      unityHubExecutableLocation: specify
-      customUnityHubExecutableLocation: /opt/unityhub/
-      unityProjectPath: $(Build.SourcesDirectory)/Game.Client/
-      installEditor: false
+  - script: |
+      /opt/unity/Editor/Unity -quit -batchmode -nographics -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/
+
   - task: CmdLine@2
     displayName: Hello World
     inputs:
