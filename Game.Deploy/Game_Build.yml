@@ -51,7 +51,7 @@ jobs:
   - script: |
       $(unityPath) -quit -batchmode -nographics -accept-apiupdate -manualLicenseFile Unity_v2022.x.ulf  -username "$(unityUsername)" -password "$(unityPassword)"
   - script: |
-      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/
+      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/ -outputPath $(Build.ArtifactStagingDirectory)
 
   - task: CmdLine@2
     displayName: Hello World
