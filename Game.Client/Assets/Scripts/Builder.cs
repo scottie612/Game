@@ -1,17 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Build.Reporting;
 using UnityEditor;
-using UnityEngine;
-using System.Runtime.InteropServices;
 
 public class Builder
 {
     // This function will be called from the build process
     public static void Build()
     {
-
-
         string[] defaultScene = {
             "Assets/Scenes/Login.unity",
             "Assets/Scenes/Register.unity",
