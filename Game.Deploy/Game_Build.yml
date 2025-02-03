@@ -52,7 +52,7 @@ jobs:
       $(unityPath) -quit -batchmode -nographics -accept-apiupdate -manualLicenseFile Unity_v2022.x.ulf  -username "$(unityUsername)" -password "$(unityPassword)"
     displayName: "Login Via License File"
   - script: |
-      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/ -outputPath $(Build.ArtifactStagingDirectory)/bin -buildEnvironment DEV
+      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/ -outputPath $(Build.ArtifactStagingDirectory)/MyGame.exe -buildEnvironment DEV
     displayName: "Build Client"
   - task: PublishBuildArtifacts@1
     displayName: Publish Build Artifact
