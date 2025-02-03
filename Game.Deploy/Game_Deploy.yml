@@ -5,7 +5,6 @@ pool: Default
 variables:
 - group: 'DEV - Environment Variables'
 
-
 jobs:
 - deployment: Deploy_Server
   displayName: Deploy Server
