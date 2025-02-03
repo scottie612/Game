@@ -30,11 +30,12 @@ jobs:
 - job: Build_Client
   steps:
   - script: |
+      $(unityPath) -quit -batchmode -nographics -accept-apiupdate -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/
+  - script: |
       $(unityPath) -quit -batchmode -nographics -accept-apiupdate -username "$(unityUsername)" -password "$(unityPassword)"
   - script: |
       $(unityPath) -quit -batchmode -nographics -returnlicense -username $(unityUsername) -password $(unityPassword) 
-  - script: |
-      $(unityPath) -quit -batchmode -nographics -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/
+
 
   - task: CmdLine@2
     displayName: Hello World
