@@ -54,6 +54,12 @@ jobs:
   - script: |
       $(unityPath) -quit -batchmode -nographics -accept-apiupdate -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/ -outputPath $(Build.ArtifactStagingDirectory)/MyGame.exe -buildEnvironment DEV
     displayName: "Build Client"
+  - script: |
+        if [ ! -f "$(Build.ArtifactStagingDirectory)/MyGame.exe" ]; then 
+            exit 1
+        fi
+    displayName: "Artifact Build Status"
+
   - task: PublishBuildArtifacts@1
     displayName: Publish Build Artifact
     inputs:
