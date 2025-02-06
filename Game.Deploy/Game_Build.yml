@@ -117,4 +117,4 @@ stages:
                 displayName: Upload Artifact to minio
                 inputs:
                   script: |
-                    mc cp $(Pipeline.Workspace) "miniodev/shooter/dev/"
+                    mc cp --recursive $(Pipeline.Workspace) "miniodev/shooter/dev/" 
