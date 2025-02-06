@@ -32,8 +32,17 @@ jobs:
     runOnce:
       deploy:
         steps:
+          #NEED TO DOWNLOAD ARTIFACT
+          - download: current
+            patterns: '**/*.zip'
+
           - task: CmdLine@2
-            displayName: Hello World
+            displayName: Login to minio
             inputs:
               script: |
-                echo "Hello World"
+                mc alias set miniodev $(minioUrl) $(minioAccessKey) $(minioSecretKey)
+          - task: CmdLine@2
+            displayName: Upload Artifact to minio
+            inputs:
+              script: |
+                mc cp ARTIFACT "miniodev/shooter/releases/"
