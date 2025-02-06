@@ -4,10 +4,13 @@ pool: Default
 
 variables:
 - group: 'DEV - Environment Variables'
+
 - name: repository
   value: 'game-server'
+
 - name: 'unityPath'
   value: '/opt/unity/editors/2022.3.4f1/Editor/Unity'
+
 stages:
   - stage: Build
     jobs:
@@ -117,4 +120,4 @@ stages:
                 displayName: Upload Artifact to minio
                 inputs:
                   script: |
-                    mc cp --recursive $(Pipeline.Workspace) "miniodev/shooter/dev/" 
+                    mc cp --recursive $(Pipeline.Workspace)/Game.Client-$(Build.BuildNumber)/ "miniodev/shooter/dev/Game.Client-$(Build.BuildNumber)/" 
