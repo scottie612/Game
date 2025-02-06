@@ -103,7 +103,10 @@ stages:
         runOnce:
           deploy:
             steps:
-              - download: current
+              - task: DownloadPipelineArtifact@2
+                inputs:
+                  buildType: 'current'
+                  targetPath: '$(Pipeline.Workspace)'
 
               - script: |
                   tree
