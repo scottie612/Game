@@ -1,0 +1,124 @@
+trigger: none
+
+pool: Default
+
+variables:
+- group: 'DEV - Environment Variables'
+- name: repository
+  value: 'game-server'
+- name: 'unityPath'
+  value: '/opt/unity/editors/2022.3.4f1/Editor/Unity'
+
+stages:
+  - stage: Build
+    jobs:
+    - job: Build_Server
+      steps:
+
+      - task: Docker@2
+        displayName: Build Image
+        inputs:
+          command: build
+          repository: '$(repository)'
+          dockerfile: '$(Build.SourcesDirectory)/Game.Server/Dockerfile'
+          buildContext: $(Build.SourcesDirectory)
+          tags: |
+            latest
+            $(Build.BuildNumber)
+
+      - task: CmdLine@2
+        displayName: Prune Dangling Images
+        inputs:
+          script: |
+            docker image prune -f
+
+    - job: Build_Client
+      steps:
+      - task: DotNetCoreCLI@2
+        displayName: Build Game.Common
+        inputs:
+          command: 'build'
+          projects: "**/Game.Common.csproj"
+          arguments: '--configuration Release --output $(Build.SourcesDirectory)/Game.Client/Assets/Scripts/Assemblies/'
+          displayName: 'dotnet build $(buildConfiguration)'
+
+      - task: DownloadSecureFile@1
+        name: unityLicense
+        displayName: "Download Unity License"
+        inputs:
+            secureFile: "Unity_v2022.x.ulf"
+      
+      - script: |
+          cp "$(unityLicense.secureFilePath)" Unity_v2022.x.ulf
+          tree 
+        displayName: "Copy License File"
+      
+      - script: |
+          $(unityPath) -quit -batchmode -nographics -accept-apiupdate -manualLicenseFile Unity_v2022.x.ulf  -username "$(unityUsername)" -password "$(unityPassword)"
+        displayName: "Login Via License File"
+      
+      - script: |
+          $(unityPath) -quit -batchmode -nographics -accept-apiupdate -buildTarget StandaloneWindows -executeMethod Builder.Build -projectPath $(Build.SourcesDirectory)/Game.Client/ -outputPath $(Build.ArtifactStagingDirectory)/MyGame.exe -buildEnvironment DEV
+        displayName: "Build Client"
+      
+      - script: |
+            if [ ! -f "$(Build.ArtifactStagingDirectory)/MyGame.exe" ]; then 
+                exit 1
+            fi
+        displayName: "Artifact Build Status"
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Build Artifact
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'Game.Client-$(Build.BuildNumber)' 
+          publishLocation: 'Container'
+
+
+  - stage: Deploy_Dev
+    jobs:
+    - deployment: Deploy_Server
+      displayName: Deploy Server
+      environment: DEV
+      strategy: 
+        runOnce:
+          deploy:
+            steps:
+              # TODO: Generate Encryption Keys and inject as ENV variables? also need to figure out way for client. (streamingAssets)
+              - checkout: self
+              - task: CmdLine@2
+                displayName: Deploy Server
+                inputs:
+                  script: |
+                    tree
+                    docker compose -f '$(Build.SourcesDirectory)/Game.Server/docker-compose.yml' up -d 
+                env:
+                  IMAGE_TAG: latest
+                  PlayFabOptions__TitleID: $(PlayFabOptions__TitleID)
+                  PlayFabOptions__DeveloperSecretKey: $(PlayFabOptions__DeveloperSecretKey)
+    - deployment: Deploy_Client
+      displayName: Deploy Client
+      environment: DEV
+      strategy: 
+        runOnce:
+          deploy:
+            steps:
+              - task: DownloadPipelineArtifact@2
+                inputs:
+                  buildType: 'current'
+                  targetPath: '$(Pipeline.Workspace)'
+
+              - script: |
+                  tree
+
+              - task: CmdLine@2
+                displayName: Login to minio
+                inputs:
+                  script: |
+                    mc alias set miniodev $(minioUrl) $(minioAccessKey) $(minioSecretKey)
+
+              - task: CmdLine@2
+                displayName: Upload Artifact to minio
+                inputs:
+                  script: |
+                    mc cp --recursive $(Pipeline.Workspace)/Game.Client-$(Build.BuildNumber)/ "miniodev/shooter/dev/Game.Client-$(Build.BuildNumber)/" 
