@@ -16,6 +16,9 @@ public class PlayFabLoginManager : MonoBehaviour
     [SerializeField] private TMP_Text _loginResponse;
     [SerializeField] private Button _login;
     [SerializeField] private Button _register;
+    [SerializeField] private TMP_Dropdown _ipDropdown;
+
+    private List<string> DropOptions = new List<string> { "localhost", "Dev-local", "Dev" };
 
     public void Start()
     {
@@ -25,6 +28,28 @@ public class PlayFabLoginManager : MonoBehaviour
         _loginResponse.text = "";
         _login.onClick.AddListener(OnLoginClicked);
         _register.onClick.AddListener(OnRegisterClicked);
+
+        _ipDropdown.ClearOptions();
+        _ipDropdown.AddOptions(DropOptions);
+        _ipDropdown.onValueChanged.AddListener(OnIPDropDownChanged);
+    }
+
+    private void OnIPDropDownChanged(int index)
+    {
+        switch (DropOptions[index])
+        {
+            case "localhost":
+                Globals.ServerIP = "127.0.0.1";
+                break;
+            case "Dev-local":
+                Globals.ServerIP = "192.168.1.100";
+                break;
+            case "Dev":
+                Globals.ServerIP = "173.168.80.191";
+                break;
+            default:
+                break;
+        };
     }
 
     private void OnLoginClicked()

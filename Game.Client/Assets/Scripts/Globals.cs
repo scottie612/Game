@@ -12,5 +12,5 @@ public static class Globals
 
     public static RSA RSAKeypair { get; set; }
 
-    public static string ServerIP { get; set; }
+    public static string ServerIP { get; set; } = "127.0.0.1";
 }

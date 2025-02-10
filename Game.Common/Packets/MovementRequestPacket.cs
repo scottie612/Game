@@ -1,7 +1,9 @@
 ﻿using Game.Common.Enums;
+using Game.Common.Extentions;
 using Game.Common.Packets.Interfaces;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using System.Numerics;
 
 namespace Game.Packets
 {
@@ -15,19 +17,15 @@ namespace Game.Packets
 
         public NetPeer? NetPeer { get; set; }
 
-        public float XComponent { get; set; }
-
-        public float YComponent { get; set; }
+        public Vector2 InputVector { get; set; }
 
         public void Serialize(NetDataWriter writer)
         {
-            writer.Put(XComponent);
-            writer.Put(YComponent);
+            writer.Put(InputVector);
         }
         public void Deserialize(NetDataReader reader)
         {
-            XComponent = reader.GetFloat();
-            YComponent = reader.GetFloat();
+            InputVector = reader.GetVector2();
         }
     }
 }

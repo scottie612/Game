@@ -16,8 +16,7 @@ public class InputManager : Singleton<InputManager>
         if (_previousMovementInput != _currentMovementInput)
         {
             var packet = new MovementRequestPacket();
-            packet.XComponent = _currentMovementInput.x;
-            packet.YComponent = _currentMovementInput.y;
+            packet.InputVector = new System.Numerics.Vector2(_currentMovementInput.x, _currentMovementInput.y);
 
             NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
 
@@ -39,5 +38,21 @@ public class InputManager : Singleton<InputManager>
 
         }
 
+        if (Input.GetKeyUp(KeyCode.Alpha1)) 
+        { 
+        
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha2))
+        {
+
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha3))
+        {
+
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha4))
+        {
+
+        }
     }
 }
