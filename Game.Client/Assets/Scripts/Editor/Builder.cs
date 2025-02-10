@@ -7,6 +7,7 @@ public class Builder
     {
         string[] defaultScene = {
             "Assets/Scenes/Login.unity",
+            "Assets/Scenes/Play.unity",
             "Assets/Scenes/Register.unity",
             "Assets/Scenes/World.unity"
             };
