@@ -83,7 +83,7 @@ public class NetworkManager : Singleton<NetworkManager>, INetEventListener
     public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
     {
         Debug.Log("Disconnected!");
-        SceneManager.LoadScene("Login");
+        SceneManager.LoadScene("Play");
     }
 
     public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
