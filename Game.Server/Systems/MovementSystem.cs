@@ -26,7 +26,6 @@ namespace Game.Server.Systems
 
         public override void Update(float deltaTime)
         {
-            UpdateVelocityWithPlayerInput();
             UpdateVelocityWithMovementSpeed();
             UpdatePositionWithVelocity(deltaTime);
             SendPositionUpdates();
@@ -34,21 +33,12 @@ namespace Game.Server.Systems
 
         public void HandleMovementRequest(NetPeer peer, MovementRequestPacket packet)
         {
-            World.World.Query(in _recieveMovementRequestQuery, (Entity entity, ref NetworkConnectionComponent ncc, ref PlayerInputComponent pic) =>
+            World.World.Query(in _recieveMovementRequestQuery, (Entity entity, ref NetworkConnectionComponent ncc, ref VelocityComponent vc) =>
             {
                 if (peer.Id == ncc.Peer.Id)
                 {
-                    pic.MovemenetVector.X = packet.XComponent;
-                    pic.MovemenetVector.Y = packet.YComponent;
+                    vc.Value = packet.InputVector.NormalizeSafe();
                 }
-            });
-        }
-
-        private void UpdateVelocityWithPlayerInput()
-        {
-            World.World.Query(in _inputQuery, (Entity entity, ref VelocityComponent vel, ref PlayerInputComponent pic) =>
-            {
-                vel.Value = pic.MovemenetVector.NormalizeSafe();
             });
         }
 

@@ -5,6 +5,7 @@
         //Client
         MovementRequest = 1,
         ActionRequest,
+        ChangeSelectedHotbarIndexRequest,
 
 
         //Server
@@ -13,5 +14,7 @@
         EntityMovement,
         EntityHealthChanged,
         EntityManaChanged,
+        EntityDied,
+        EntityAttacked,
     }
 }

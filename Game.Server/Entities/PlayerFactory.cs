@@ -3,26 +3,73 @@ using Arch.Core.Extensions;
 using Game.Common.Enums;
 using Game.Server.Components;
 using LiteNetLib;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Game.Server.Entities
 {
+
+    /// <summary>
+    /// Creates a player in the world
+    /// TODO Update this to be extention method of World and use builder pattern.
+    /// </summary>
     public static class PlayerFactory
     {
         public static Entity CreatePlayer(World world, NetPeer peer, string username)
         {
+            var weapon = WeaponFactory.CreateRifle(world).Reference();
+
             var playerEntity = world.Create(
-                new NetworkConnectionComponent { Peer = peer },
-                new EntityTypeComponent { Type = EntityType.Player },
-                new NameComponent { Name = username },
-                new PositionComponent { Value = new Vector2(0, 0) },
-                new HitboxComponent { Width = 1f, Height = 2f },
-                new PlayerInputComponent { MovemenetVector = new Vector2(0, 0), MousePosition = new Vector2(0 ,0), Fire = false },
-                new VelocityComponent { Value = new Vector2(0, 0) },
-                new MovementSpeedComponent { Value = 10f },
-                new HealthComponent { MaxValue = 100, CurrentValue = 100 },
-                new ManaComponent { MaxValue = 100, CurrentValue = 100 },
-                new SelectedWeaponComponent { Weapon = WeaponFactory.CreateRifle(world).Reference() },
+                new NetworkConnectionComponent
+                {
+                    Peer = peer
+                },
+                new EntityTypeComponent
+                {
+                    Type = EntityType.Player
+                },
+                new NameComponent
+                {
+                    Name = username
+                },
+                new PositionComponent
+                {
+                    Value = new Vector2(0, 0)
+                },
+                new HitboxComponent
+                {
+                    Width = 1f,
+                    Height = 2f
+                },
+                new PlayerInputComponent
+                {
+                    MovemenetVector = new Vector2(0, 0),
+                    MousePosition = new Vector2(0, 0),
+                    Fire = false
+                },
+                new VelocityComponent
+                {
+                    Value = new Vector2(0, 0)
+                },
+                new MovementSpeedComponent
+                {
+                    Value = 10f
+                },
+                new HealthComponent
+                {
+                    MaxValue = 100,
+                    CurrentValue = 100
+                },
+                new ManaComponent
+                {
+                    MaxValue = 100,
+                    CurrentValue = 100
+                },
+                new HotbarComponent
+                {
+                    SelectedIndex = 0,
+                    Hotbar = new List<EntityReference>() { weapon }
+                },
                 new NewEntityTag { }
                 );
 
