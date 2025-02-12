@@ -1,7 +1,10 @@
-﻿namespace Game.Server.Components
+﻿using System.Numerics;
+
+namespace Game.Server.Components
 {
     public struct RangeComponent
     {
-        public int Value;
+        public int Range;
+        public Vector2 StartingPosition;
     }
 }

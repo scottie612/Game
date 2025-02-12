@@ -5,5 +5,6 @@
         Player,
         FireBall,
         Bullet,
+        HealingOrb,
     }
 }

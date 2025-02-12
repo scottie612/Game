@@ -8,6 +8,7 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>
 {
     public ServerEntity PlayerPrefab;
     public ServerEntity FireballPrefab;
+    public ServerEntity OrbPrefab;
 
 
     public Dictionary<int, GameObject> SpawnedEntites = new Dictionary<int, GameObject>();
@@ -43,6 +44,11 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>
                 break;
             case EntityType.Bullet:
                 spawnedEntity = Instantiate(FireballPrefab, new Vector3(packet.StartingX, packet.StartingY, 0), Quaternion.identity);
+                spawnedEntity.EntityID = packet.EntityID;
+                spawnedEntity.EntityName = packet.EntityName;
+                break;
+            case EntityType.HealingOrb:
+                spawnedEntity = Instantiate(OrbPrefab, new Vector3(packet.StartingX, packet.StartingY, 0), Quaternion.identity);
                 spawnedEntity.EntityID = packet.EntityID;
                 spawnedEntity.EntityName = packet.EntityName;
                 break;
