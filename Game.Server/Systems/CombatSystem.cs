@@ -26,17 +26,6 @@ namespace Game.Server.Systems
             PacketDispatcher.Subscribe<ChangeSelectedHotbarIndexRequestPacket>(HandleChangeSelectedHotbarIndexRequest);
         }
 
-        public override void Initialize()
-        {
-            //Spawn 10 Healing Orbs at random Locations
-            for (int i = 0; i < 10; i++)
-            {
-                var healAmount = RandomHelper.RandomInt(10, 100);
-                var position = new Vector2(RandomHelper.RandomFloat(-100f, 100f), RandomHelper.RandomFloat(-100f, 100f));
-                OrbFactory.CreateHealing(World.World, healAmount, position);
-            }
-        }
-
         public override void Update(float deltaTime)
         {
             EnsureOrbs();
