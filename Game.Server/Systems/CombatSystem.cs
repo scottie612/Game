@@ -1,6 +1,7 @@
 ﻿using Arch.Buffer;
 using Arch.Core;
 using Arch.Core.Extensions;
+using CommunityToolkit.HighPerformance.Buffers;
 using Game.Common;
 using Game.Common.Enums;
 using Game.Common.Packets;
@@ -11,7 +12,6 @@ using Game.Server.Entities;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Numerics;
 
 namespace Game.Server.Systems
@@ -26,12 +26,42 @@ namespace Game.Server.Systems
             PacketDispatcher.Subscribe<ChangeSelectedHotbarIndexRequestPacket>(HandleChangeSelectedHotbarIndexRequest);
         }
 
+        public override void Initialize()
+        {
+            //Spawn 10 Healing Orbs at random Locations
+            for (int i = 0; i < 10; i++)
+            {
+                var healAmount = RandomHelper.RandomInt(10, 100);
+                var position = new Vector2(RandomHelper.RandomFloat(-100f, 100f), RandomHelper.RandomFloat(-100f, 100f));
+                OrbFactory.CreateHealing(World.World, healAmount, position);
+            }
+        }
+
         public override void Update(float deltaTime)
         {
+            EnsureOrbs();
             UpdateWeaponCooldowns(deltaTime);
             Attack();
-            DamageOnCollision(deltaTime);
+            HandleCollisions();
             CheckForDeath();
+        }
+
+        private QueryDescription _ensureOrbsQuery = new QueryDescription().WithAll<OrbTag>();
+        private void EnsureOrbs()
+        {
+            var count = 0;
+            World.World.Query(in _ensureOrbsQuery, (Entity entity) =>
+            {
+                count++;
+            });
+
+            var amountToAdd = 30 - count;
+            for (int i = 0; i < amountToAdd; i++)
+            {
+                var healAmount = RandomHelper.RandomInt(10, 100);
+                var position = new Vector2(RandomHelper.RandomFloat(-100f, 100f), RandomHelper.RandomFloat(-100f, 100f));
+                OrbFactory.CreateHealing(World.World, healAmount, position);
+            }
         }
 
         private QueryDescription _recieveActionRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent>();
@@ -50,6 +80,7 @@ namespace Game.Server.Systems
                 }
             });
             buffer.Playback(World.World);
+            buffer.Dispose();
         }
 
         private QueryDescription _recieveChangeSelectedHotbarIndexRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent, HotbarComponent>();
@@ -93,141 +124,113 @@ namespace Game.Server.Systems
                     else
                     {
                         _logger.LogTrace($"Weapon NOT on cooldown. Time left: {cooldownComponent.TimeLeft}");
-                        cooldownComponent.TimeLeft = cooldownComponent.Cooldown;
+                        cooldownComponent.TimeLeft = cooldownComponent.Duration;
                         selectedItem.Set(cooldownComponent);
 
                         //SOMEHOW NOTE THAT THIS PLAYER IS ATTACKING
-                        var attackedPacket = new EntityAttackedPacket() 
-                        { 
+                        var attackedPacket = new EntityAttackedPacket()
+                        {
                             EntityID = entity.Id,
                             AttackDirection = arc.MouseDirection,
                         };
                         PacketDispatcher.Enqueue(attackedPacket);
 
-                        var bullet = ProjectileFactory.CreateBullet(World.World, ref entity,ref selectedItem, arc.MouseDirection);
+                        var bullet = ProjectileFactory.CreateRifleBullet(World.World, ref entity, ref selectedItem, arc.MouseDirection);
 
-                        
+
                     }
                     buffer.Remove<AttackRequestComponent>(entity);
                 }
             });
             buffer.Playback(World.World);
+            buffer.Dispose();
         }
 
-
-        private QueryDescription _damageOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, DamageComponent>();
-        private QueryDescription _hitboxQuery = new QueryDescription().WithAll<HitboxComponent, PositionComponent, HealthComponent>();
-        private void DamageOnCollision(float deltaTime)
+        private QueryDescription _playerHitboxQuery = new QueryDescription().WithAll<HitboxComponent, PositionComponent, HealthComponent>();
+        private QueryDescription _damageOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, DamageComponent, HitboxComponent, ProjectileTag>();
+        private QueryDescription _healOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, HealComponent, HitboxComponent, OrbTag>();
+        private void HandleCollisions()
         {
-            World.World.Query(in _damageOnCollisionQuery, (Entity projectileEntity, ref PositionComponent projectilePosition, ref DamageComponent projectileDamage) =>
+            var buffer = new CommandBuffer();
+            World.World.Query(in _playerHitboxQuery, (Entity playerEntity, ref HitboxComponent playerHB, ref PositionComponent playerPosition, ref HealthComponent playerHP) =>
             {
-                var buffer = new CommandBuffer();
-                var projectileDam = projectileDamage.Damage;
-                var projectilePos = projectilePosition.Value;
-
-
-                //If entity has a hitbox, caluclate if any other entities with a hitbox and health component are within the hitbox
-                if (projectileEntity.TryGet<HitboxComponent>(out var projectileHitbox))
+                var playerHealth = playerHP;
+                var playerPos = playerPosition;
+                var playerHitBox = playerHB;
+                World.World.Query(in _damageOnCollisionQuery, (Entity projectileEntity, ref PositionComponent projPos, ref DamageComponent projDamage, ref HitboxComponent projHitBox) =>
                 {
-                    World.World.Query(in _hitboxQuery, (Entity targetEntity, ref HitboxComponent targetHitbox, ref PositionComponent targetPosition, ref HealthComponent targetHealth) =>
+                    if (projectileEntity == playerEntity)
+                        return;
+                    if (projectileEntity.TryGet<CasterComponent>(out var casterComponent))
                     {
-                        if (projectileEntity == targetEntity)
+                        if (casterComponent.CastingEntity == playerEntity)
                             return;
-                        if (projectileEntity.Get<CasterComponent>().CastingEntity == targetEntity)
-                            return;
-
-                        float axMin = projectilePos.X + projectileHitbox.XOffset;
-                        float axMax = axMin + projectileHitbox.Width;
-                        float ayMin = projectilePos.Y + projectileHitbox.YOffset;
-                        float ayMax = ayMin + projectileHitbox.Height;
-
-                        // Calculate the bounding box for the second entity
-                        float bxMin = targetPosition.Value.X + targetHitbox.XOffset;
-                        float bxMax = bxMin + targetHitbox.Width;
-                        float byMin = targetPosition.Value.Y + targetHitbox.YOffset;
-                        float byMax = byMin + targetHitbox.Height;
-
-                        var projectileVelocity = projectileEntity.Get<VelocityComponent>().Value;
-                        var targetVelocity = targetEntity.Get<VelocityComponent>().Value;
-
-                        var relativeVelocity = projectileVelocity - targetVelocity;
-
-                        float txMin = (relativeVelocity.X > 0) ? (bxMin - axMax) / relativeVelocity.X : (bxMax - axMin) / relativeVelocity.X;
-                        float txMax = (relativeVelocity.X > 0) ? (bxMax - axMin) / relativeVelocity.X : (bxMin - axMax) / relativeVelocity.X;
-
-                        // Compute entry/exit times along Y axis
-                        float tyMin = (relativeVelocity.Y > 0) ? (byMin - ayMax) / relativeVelocity.Y : (byMax - ayMin) / relativeVelocity.Y;
-                        float tyMax = (relativeVelocity.Y > 0) ? (byMax - ayMin) / relativeVelocity.Y : (byMin - ayMax) / relativeVelocity.Y;
-
-                        // Find the earliest entry and latest exit time
-                        float tEnter = Math.Max(txMin, tyMin);
-                        float tExit = Math.Min(txMax, tyMax);
-
-                        // If tEnter > tExit, no collision; also limit check to this frame (deltaTime)
-                        if (tEnter > tExit || tEnter < 0 || tEnter > deltaTime)
-                            return;
-
-                        targetHealth.CurrentValue -= projectileDam;
-                        buffer.Add<HealthDirtyTag>(targetEntity);
-                        buffer.Add<DeleteEntityTag>(projectileEntity);
-                        _logger.LogTrace($"Entity {targetEntity.Id} hit by projectile {projectileEntity.Id}. Health: {targetHealth.CurrentValue}");
-
-
-                    });
-                }
-                else
-                {  //if not, caluclate if it's positon is within any other entities with a hitbox and health component.
-                    World.World.Query(in _hitboxQuery, (Entity targetEntity, ref HitboxComponent targetHitbox, ref PositionComponent targetPosition, ref HealthComponent targetHealth) =>
+                    }
+                    if (IsColliding(playerPos, projPos, playerHitBox, projHitBox))
                     {
-                        if (projectileEntity == targetEntity)
-                            return;
-                        if (projectileEntity.Get<CasterComponent>().CastingEntity == targetEntity)
-                            return;
+                        playerHealth.CurrentValue -= projDamage.Damage;
 
-                        // Calculate the bounding box for the target entity
-                        float bxMin = targetPosition.Value.X + targetHitbox.XOffset;
-                        float bxMax = bxMin + targetHitbox.Width;
-                        float byMin = targetPosition.Value.Y + targetHitbox.YOffset;
-                        float byMax = byMin + targetHitbox.Height;
-
-                        var projectileVelocity = projectileEntity.Get<VelocityComponent>().Value;
-                        var targetVelocity = targetEntity.Get<VelocityComponent>().Value;
-
-                        var relativeVelocity = projectileVelocity - targetVelocity;
-
-                        // Compute entry/exit times along X axis
-                        float txMin = (relativeVelocity.X > 0) ? (bxMin - projectilePos.X) / relativeVelocity.X
-                                                               : (bxMax - projectilePos.X) / relativeVelocity.X;
-                        float txMax = (relativeVelocity.X > 0) ? (bxMax - projectilePos.X) / relativeVelocity.X
-                                                               : (bxMin - projectilePos.X) / relativeVelocity.X;
-
-                        // Compute entry/exit times along Y axis
-                        float tyMin = (relativeVelocity.Y > 0) ? (byMin - projectilePos.Y) / relativeVelocity.Y
-                                                               : (byMax - projectilePos.Y) / relativeVelocity.Y;
-                        float tyMax = (relativeVelocity.Y > 0) ? (byMax - projectilePos.Y) / relativeVelocity.Y
-                                                               : (byMin - projectilePos.Y) / relativeVelocity.Y;
-
-                        // Find the earliest entry and latest exit time
-                        float tEnter = Math.Max(txMin, tyMin);
-                        float tExit = Math.Min(txMax, tyMax);
-
-                        // If tEnter > tExit, no collision; also limit check to this frame (deltaTime)
-                        if (tEnter > tExit || tEnter < 0 || tEnter > deltaTime)
-                            return;
-
-                        targetHealth.CurrentValue -= projectileDam;
-                        buffer.Add<HealthDirtyTag>(targetEntity);
+                        buffer.Add<HealthDirtyTag>(playerEntity);
+                        buffer.Set(playerEntity, playerHealth);
                         buffer.Add<DeleteEntityTag>(projectileEntity);
-                        _logger.LogTrace($"Entity {targetEntity.Id} hit by projectile {projectileEntity.Id}. Health: {targetHealth.CurrentValue}");
+                        _logger.LogTrace($"Entity {playerEntity.Id} hit by projectile {projectileEntity.Id}. Health: {playerHealth.CurrentValue}");
+                    }
+                });
+                World.World.Query(in _healOnCollisionQuery, (Entity orbEntity, ref PositionComponent orbPos, ref HealComponent orbHeal, ref HitboxComponent orbHitBox) =>
+                {
+                    if (orbEntity == playerEntity)
+                        return;
+                    if (orbEntity.TryGet<CasterComponent>(out var casterComponent))
+                    {
+                        if (casterComponent.CastingEntity == playerEntity)
+                            return;
+                    }
+                    if (IsColliding(playerPos, orbPos, playerHitBox, orbHitBox))
+                    {
+                        playerHealth.CurrentValue += orbHeal.Value;
+                        if(playerHealth.CurrentValue > playerHealth.MaxValue)
+                        {
+                            playerHealth.CurrentValue = playerHealth.MaxValue;
+                        }
 
+                        buffer.Add<HealthDirtyTag>(playerEntity);
+                        buffer.Set(playerEntity, playerHealth);
+                        buffer.Add<DeleteEntityTag>(orbEntity);
+                        _logger.LogTrace($"Entity {playerEntity.Id} healed by orb {orbEntity.Id}. Health: {playerHealth.CurrentValue}");
+                    }
 
-                    });
-                }
-                buffer.Playback(World.World);
-
+                });
             });
+            buffer.Playback(World.World);
+            buffer.Dispose();
         }
 
+        private bool IsColliding(PositionComponent positionA, PositionComponent positionB, HitboxComponent hitboxA, HitboxComponent hitboxB)
+        {
+            // Get center positions of both circles
+            Vector2 centerA = new Vector2(
+                positionA.Value.X + hitboxA.XOffset,
+                positionA.Value.Y + hitboxA.YOffset
+            );
+
+            Vector2 centerB = new Vector2(
+                positionB.Value.X + hitboxB.XOffset,
+                positionB.Value.Y + hitboxB.YOffset
+            );
+
+            // Check if circles overlap using distance check
+            var distanceSquared = Vector2.DistanceSquared(centerA, centerB);
+            var combinedRadius = hitboxA.Radius + hitboxB.Radius;
+
+            if (distanceSquared <= combinedRadius * combinedRadius)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         private QueryDescription _deathQuery = new QueryDescription().WithAll<HealthComponent>();
         private void CheckForDeath()
@@ -247,7 +250,6 @@ namespace Game.Server.Systems
                         {
                             buffer.Set(entity, new PositionComponent { Value = new Vector2(RandomHelper.RandomInt(-100, 100), RandomHelper.RandomInt(-100, 100)) });
                             buffer.Set(entity, new VelocityComponent { Value = new Vector2(0, 0) });
-                            buffer.Set(entity, new PlayerInputComponent { MovemenetVector = new Vector2(0, 0), Fire = false, MousePosition = new Vector2(0, 0) });
                             buffer.Set(entity, new HealthComponent { CurrentValue = 100, MaxValue = 100 });
                             buffer.Set(entity, new ManaComponent { CurrentValue = 100, MaxValue = 100 });
                             buffer.Add<PositionDiryTag>(entity);

@@ -9,14 +9,30 @@ namespace Game.Server.Entities
         public static Entity CreateRifle(World world)
         {
             var rifle = world.Create(
-                new CooldownComponent { Cooldown = .5f },
-                new DamageComponent { Damage = 10, DamageType = DamageType.Physical },
-                new RangeComponent { Value = 20 },
-                new MovementSpeedComponent { Value = 25f },
+                new CooldownComponent { Duration = .5f },
                 new WeaponTag { }
                 );
 
             return rifle;
         }
+
+        public static Entity CreateBow(World world)
+        {
+            var bow = world.Create(
+                new CooldownComponent { Duration = .5f },
+                new WeaponTag { }
+                );
+            return bow;
+        }
+
+        public static Entity CreateSword(World world)
+        {
+            var bow = world.Create(
+                new CooldownComponent { Duration = .5f },
+                new WeaponTag { }
+                );
+            return bow;
+        }
     }
+
 }

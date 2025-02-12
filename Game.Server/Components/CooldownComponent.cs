@@ -2,7 +2,7 @@
 {
     public struct CooldownComponent
     {
-        public float Cooldown;
+        public float Duration;
         public float TimeLeft;
     }
 }

@@ -9,27 +9,42 @@ namespace Game.Server.Entities
     public static class ProjectileFactory
     {
 
-        public static Entity CreateBullet(World world, ref Entity castingEntity, ref Entity weapon, Vector2 direction)
+        public static Entity CreateRifleBullet(World world, ref Entity castingEntity, ref Entity weapon, Vector2 direction)
         {
-            if (castingEntity.TryGet<PositionComponent>(out var startingPosition))
-            {
-                var playerEntity = world.Create(
-                    new EntityTypeComponent { Type = EntityType.Bullet },
-                    new CasterComponent { CastingEntity = castingEntity },
-                    new PositionComponent { Value = startingPosition.Value },
-                    new VelocityComponent { Value = direction },
-                    new MovementSpeedComponent { Value = weapon.Get<MovementSpeedComponent>().Value },
-                    new DamageComponent { Damage = weapon.Get<DamageComponent>().Damage, DamageType = weapon.Get<DamageComponent>().DamageType },
-                    new HitboxComponent { Width = 0.5f, Height = 0.5f },
-                    new DestroyAfterDistanceComponent { Distance = weapon.Get<RangeComponent>().Value, StartingPosition = startingPosition.Value },
-                    new ProjectileTag { },
-                    new NewEntityTag { }
-                    );
-                return playerEntity;
-            }
+            var startingPosition = castingEntity.Get<PositionComponent>().Value;
 
-            return castingEntity;
+            var bullet = world.Create(
+                new EntityTypeComponent { Type = EntityType.Bullet },
+                new CasterComponent { CastingEntity = castingEntity },
+                new PositionComponent { Value = startingPosition },
+                new VelocityComponent { Value = direction },
+                new MovementSpeedComponent { Value = 20f },
+                new DamageComponent { Damage = 20, DamageType = DamageType.Physical },
+                new RangeComponent { Range = 20, StartingPosition = startingPosition },
+                new HitboxComponent {Radius = 0.2f },
+                new ProjectileTag { },
+                new NewEntityTag { }
+                );
+            return bullet;
         }
 
+        public static Entity CreateArrow(World world, ref Entity castingEntity, ref Entity weapon, Vector2 direction)
+        {
+            var startingPosition = castingEntity.Get<PositionComponent>().Value;
+
+            var bullet = world.Create(
+                new EntityTypeComponent { Type = EntityType.Bullet },
+                new CasterComponent { CastingEntity = castingEntity },
+                new PositionComponent { Value = startingPosition },
+                new VelocityComponent { Value = direction },
+                new MovementSpeedComponent { Value = 20f },
+                new DamageComponent { Damage = 25, DamageType = DamageType.Physical },
+                new RangeComponent { Range = 15, StartingPosition = startingPosition },
+                new HitboxComponent {Radius = 0.5f },
+                new ProjectileTag { },
+                new NewEntityTag { }
+                );
+            return bullet;
+        }
     }
 }

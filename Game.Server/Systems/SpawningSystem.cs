@@ -10,10 +10,6 @@ namespace Game.Server.Systems
 {
     public class SpawningSystem : SystemBase
     {
-        public QueryDescription _newEntitiesQuery = new QueryDescription().WithAll<NewEntityTag, EntityTypeComponent, PositionComponent>();
-        public QueryDescription _despawnEntitiesQuery = new QueryDescription().WithAll<DeleteEntityTag, EntityTypeComponent>();
-        public QueryDescription _despawnAfterDistanceQuery = new QueryDescription().WithAll<DestroyAfterDistanceComponent, PositionComponent>();
-
         private ILogger<SpawningSystem> _logger;
         public SpawningSystem(GameWorld world, PacketDispatcher packetDispatcher, ILogger<SpawningSystem> logger) : base(world, packetDispatcher)
         {
@@ -22,18 +18,19 @@ namespace Game.Server.Systems
 
         public override void Update(float deltaTime)
         {
-            DespawnAfterDistance();  
+            DestroyProjectilesAfterRange();  
             SendSpawnedEntities();
             SendDespawnedEntites();
         }
 
-        private void DespawnAfterDistance()
+        public QueryDescription _destroyProjectilesAfterRange = new QueryDescription().WithAll<RangeComponent, PositionComponent, ProjectileTag>();
+        private void DestroyProjectilesAfterRange()
         {
             var buffer = new CommandBuffer();
-            World.World.Query(in _despawnAfterDistanceQuery, (Entity entity, ref PositionComponent pos, ref DestroyAfterDistanceComponent dad) =>
+            World.World.Query(in _destroyProjectilesAfterRange, (Entity entity, ref PositionComponent pos, ref RangeComponent ran) =>
             {
-                var distanceTraveled = (pos.Value - dad.StartingPosition).Length();
-                if (distanceTraveled > dad.Distance)
+                var distanceTraveled = (pos.Value - ran.StartingPosition).Length();
+                if (distanceTraveled > ran.Range)
                 {
                     buffer.Add<DeleteEntityTag>(entity);
                 }
@@ -42,6 +39,8 @@ namespace Game.Server.Systems
             buffer.Dispose();
         }
 
+
+        public QueryDescription _newEntitiesQuery = new QueryDescription().WithAll<NewEntityTag, EntityTypeComponent, PositionComponent>();
         private void SendSpawnedEntities()
         {
             var buffer = new CommandBuffer();
@@ -88,21 +87,36 @@ namespace Game.Server.Systems
                         {
                             packet.EntityName = existingEntity.Id.ToString();
                         }
-                        buffer.Add<HealthDirtyTag>(existingEntity);
-                        buffer.Add<ManaDirtyTag>(existingEntity);
+                        if(existingEntity.TryGet<HealthComponent>(out var healComponent))
+                        {
+                            buffer.Add<HealthDirtyTag>(existingEntity);
+                        }
+                        if (existingEntity.TryGet<ManaComponent>(out var manaComponent))
+                        {
+                            buffer.Add<ManaDirtyTag>(existingEntity);
+                        }
 
                         PacketDispatcher.Enqueue(packet);
                     });
                 }
 
-                buffer.Add<HealthDirtyTag>(newEntity);
-                buffer.Add<ManaDirtyTag>(newEntity);
+                if (newEntity.TryGet<HealthComponent>(out var healComponent))
+                {
+                    buffer.Add<HealthDirtyTag>(newEntity);
+                }
+                if (newEntity.TryGet<ManaComponent>(out var manaComponent))
+                {
+                    buffer.Add<ManaDirtyTag>(newEntity);
+                }
+
                 buffer.Remove<NewEntityTag>(newEntity);
 
             });
             buffer.Playback(World.World);
             buffer.Dispose();
         }
+
+        public QueryDescription _despawnEntitiesQuery = new QueryDescription().WithAll<DeleteEntityTag, EntityTypeComponent>();
         private void SendDespawnedEntites()
         {
             World.World.Query(in _despawnEntitiesQuery, (Entity entity, ref EntityTypeComponent type) =>

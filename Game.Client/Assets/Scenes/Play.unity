@@ -528,7 +528,7 @@ MonoBehaviour:
   _usernameText: {fileID: 1519061337}
   _ipDropdown: {fileID: 581132147}
   _playButton: {fileID: 1540011916}
-  _backButton: {fileID: 328644009}
+  _logoutButton: {fileID: 328644009}
 --- !u!4 &489973594
 Transform:
   m_ObjectHideFlags: 0

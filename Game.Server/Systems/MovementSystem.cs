@@ -11,8 +11,7 @@ namespace Game.Server.Systems
 {
     public class MovementSystem : SystemBase
     {
-        private QueryDescription _recieveMovementRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent, PlayerInputComponent>();
-        private QueryDescription _inputQuery = new QueryDescription().WithAll<VelocityComponent, PlayerInputComponent>();
+        private QueryDescription _recieveMovementRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent, VelocityComponent>();
         private QueryDescription _moveSpeedQuery = new QueryDescription().WithAll<VelocityComponent, MovementSpeedComponent>();
         private QueryDescription _movementQuery = new QueryDescription().WithAll<PositionComponent, VelocityComponent>();
         private QueryDescription _sendMovementQuery = new QueryDescription().WithAll<PositionComponent, PositionDiryTag>();
@@ -66,11 +65,11 @@ namespace Game.Server.Systems
             });
 
             buffer.Playback(World.World);
+            buffer.Dispose();
         }
 
         private void SendPositionUpdates()
         {
-
             var buffer = new CommandBuffer();
             World.World.Query(in _sendMovementQuery, (Entity entity, ref PositionComponent pos) =>
             {
@@ -83,6 +82,7 @@ namespace Game.Server.Systems
                 buffer.Remove<PositionDiryTag>(entity);
             });
             buffer.Playback(World.World);
+            buffer.Dispose();
         }
 
 
