@@ -26,32 +26,23 @@ namespace Game.Server.Systems
             PacketDispatcher.Subscribe<ChangeSelectedHotbarIndexRequestPacket>(HandleChangeSelectedHotbarIndexRequest);
         }
 
-        public override void Update(float deltaTime)
+        public override void Initialize()
         {
-            EnsureOrbs();
-            UpdateWeaponCooldowns(deltaTime);
-            Attack();
-            HandleCollisions();
-            CheckForDeath();
-        }
-
-        private QueryDescription _ensureOrbsQuery = new QueryDescription().WithAll<OrbTag>();
-        private void EnsureOrbs()
-        {
-            var count = 0;
-            World.World.Query(in _ensureOrbsQuery, (Entity entity) =>
-            {
-                count++;
-            });
-
-            var amountToAdd = 30 - count;
-            for (int i = 0; i < amountToAdd; i++)
+            //Create 50 orbs
+            for (int i = 0; i < 50; i++)
             {
                 var healAmount = RandomHelper.RandomInt(10, 100);
                 var position = new Vector2(RandomHelper.RandomFloat(-100f, 100f), RandomHelper.RandomFloat(-100f, 100f));
                 OrbFactory.CreateHealing(World.World, healAmount, position);
             }
         }
+        public override void Update(float deltaTime)
+        {
+            UpdateWeaponCooldowns(deltaTime);
+            Attack();
+            CheckForDeath();
+        }
+
 
         private QueryDescription _recieveActionRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent>();
         public void HandleActionRequest(NetPeer peer, ActionRequestPacket packet)
@@ -126,99 +117,12 @@ namespace Game.Server.Systems
 
                         var bullet = ProjectileFactory.CreateRifleBullet(World.World, ref entity, ref selectedItem, arc.MouseDirection);
 
-
                     }
                     buffer.Remove<AttackRequestComponent>(entity);
                 }
             });
             buffer.Playback(World.World);
             buffer.Dispose();
-        }
-
-        private QueryDescription _playerHitboxQuery = new QueryDescription().WithAll<HitboxComponent, PositionComponent, HealthComponent>();
-        private QueryDescription _damageOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, DamageComponent, HitboxComponent, ProjectileTag>();
-        private QueryDescription _healOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, HealComponent, HitboxComponent, OrbTag>();
-        private void HandleCollisions()
-        {
-            var buffer = new CommandBuffer();
-            World.World.Query(in _playerHitboxQuery, (Entity playerEntity, ref HitboxComponent playerHB, ref PositionComponent playerPosition, ref HealthComponent playerHP) =>
-            {
-                var playerHealth = playerHP;
-                var playerPos = playerPosition;
-                var playerHitBox = playerHB;
-                World.World.Query(in _damageOnCollisionQuery, (Entity projectileEntity, ref PositionComponent projPos, ref DamageComponent projDamage, ref HitboxComponent projHitBox) =>
-                {
-                    if (projectileEntity == playerEntity)
-                        return;
-                    if (projectileEntity.TryGet<CasterComponent>(out var casterComponent))
-                    {
-                        if (casterComponent.CastingEntity == playerEntity)
-                            return;
-                    }
-                    if (IsColliding(playerPos, projPos, playerHitBox, projHitBox))
-                    {
-                        playerHealth.CurrentValue -= projDamage.Damage;
-
-                        buffer.Add<HealthDirtyTag>(playerEntity);
-                        buffer.Set(playerEntity, playerHealth);
-                        buffer.Add<DeleteEntityTag>(projectileEntity);
-                        _logger.LogTrace($"Entity {playerEntity.Id} hit by projectile {projectileEntity.Id}. Health: {playerHealth.CurrentValue}");
-                    }
-                });
-                World.World.Query(in _healOnCollisionQuery, (Entity orbEntity, ref PositionComponent orbPos, ref HealComponent orbHeal, ref HitboxComponent orbHitBox) =>
-                {
-                    if (orbEntity == playerEntity)
-                        return;
-                    if (orbEntity.TryGet<CasterComponent>(out var casterComponent))
-                    {
-                        if (casterComponent.CastingEntity == playerEntity)
-                            return;
-                    }
-                    if (IsColliding(playerPos, orbPos, playerHitBox, orbHitBox))
-                    {
-                        playerHealth.CurrentValue += orbHeal.Value;
-                        if(playerHealth.CurrentValue > playerHealth.MaxValue)
-                        {
-                            playerHealth.CurrentValue = playerHealth.MaxValue;
-                        }
-
-                        buffer.Add<HealthDirtyTag>(playerEntity);
-                        buffer.Set(playerEntity, playerHealth);
-                        buffer.Add<DeleteEntityTag>(orbEntity);
-                        _logger.LogTrace($"Entity {playerEntity.Id} healed by orb {orbEntity.Id}. Health: {playerHealth.CurrentValue}");
-                    }
-
-                });
-            });
-            buffer.Playback(World.World);
-            buffer.Dispose();
-        }
-
-        private bool IsColliding(PositionComponent positionA, PositionComponent positionB, HitboxComponent hitboxA, HitboxComponent hitboxB)
-        {
-            // Get center positions of both circles
-            Vector2 centerA = new Vector2(
-                positionA.Value.X + hitboxA.XOffset,
-                positionA.Value.Y + hitboxA.YOffset
-            );
-
-            Vector2 centerB = new Vector2(
-                positionB.Value.X + hitboxB.XOffset,
-                positionB.Value.Y + hitboxB.YOffset
-            );
-
-            // Check if circles overlap using distance check
-            var distanceSquared = Vector2.DistanceSquared(centerA, centerB);
-            var combinedRadius = hitboxA.Radius + hitboxB.Radius;
-
-            if (distanceSquared <= combinedRadius * combinedRadius)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
 
         private QueryDescription _deathQuery = new QueryDescription().WithAll<HealthComponent>();
