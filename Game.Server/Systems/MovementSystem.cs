@@ -65,7 +65,6 @@ namespace Game.Server.Systems
             });
 
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
 
         private void SendPositionUpdates()
@@ -82,9 +81,6 @@ namespace Game.Server.Systems
                 buffer.Remove<PositionDiryTag>(entity);
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
-
-
     }
 }

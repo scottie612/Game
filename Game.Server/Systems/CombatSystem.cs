@@ -1,7 +1,6 @@
 ﻿using Arch.Buffer;
 using Arch.Core;
 using Arch.Core.Extensions;
-using CommunityToolkit.HighPerformance.Buffers;
 using Game.Common;
 using Game.Common.Enums;
 using Game.Common.Packets;
@@ -11,7 +10,6 @@ using Game.Server.Components;
 using Game.Server.Entities;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Numerics;
 
 namespace Game.Server.Systems
@@ -26,21 +24,30 @@ namespace Game.Server.Systems
             PacketDispatcher.Subscribe<ChangeSelectedHotbarIndexRequestPacket>(HandleChangeSelectedHotbarIndexRequest);
         }
 
-        public override void Initialize()
+        public override void Update(float deltaTime)
         {
-            //Create 50 orbs
-            for (int i = 0; i < 50; i++)
+            EnsureOrbs();
+            UpdateWeaponCooldowns(deltaTime);
+            Attack();
+            CheckForDeath();
+        }
+
+        private QueryDescription _ensureOrbsQuery = new QueryDescription().WithAll<OrbTag>();
+        private void EnsureOrbs()
+        {
+            var count = 0;
+            World.World.Query(in _ensureOrbsQuery, (Entity entity) =>
+            {
+                count++;
+            });
+            var amountToAdd = 50 - count;
+            for (int i = 0; i<= amountToAdd; i++)
             {
                 var healAmount = RandomHelper.RandomInt(10, 100);
                 var position = new Vector2(RandomHelper.RandomFloat(-100f, 100f), RandomHelper.RandomFloat(-100f, 100f));
                 OrbFactory.CreateHealing(World.World, healAmount, position);
             }
-        }
-        public override void Update(float deltaTime)
-        {
-            UpdateWeaponCooldowns(deltaTime);
-            Attack();
-            CheckForDeath();
+
         }
 
 
@@ -60,7 +67,6 @@ namespace Game.Server.Systems
                 }
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
 
         private QueryDescription _recieveChangeSelectedHotbarIndexRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent, HotbarComponent>();
@@ -122,7 +128,6 @@ namespace Game.Server.Systems
                 }
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
 
         private QueryDescription _deathQuery = new QueryDescription().WithAll<HealthComponent>();

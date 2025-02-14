@@ -21,6 +21,7 @@ namespace Game.Server.Systems
             DestroyProjectilesAfterRange();  
             SendSpawnedEntities();
             SendDespawnedEntites();
+            DeleteTaggedEntities();
         }
 
         public QueryDescription _destroyProjectilesAfterRange = new QueryDescription().WithAll<RangeComponent, PositionComponent, ProjectileTag>();
@@ -36,7 +37,6 @@ namespace Game.Server.Systems
                 }
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
 
 
@@ -113,7 +113,6 @@ namespace Game.Server.Systems
 
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
 
         public QueryDescription _despawnEntitiesQuery = new QueryDescription().WithAll<DeleteEntityTag, EntityTypeComponent>();
@@ -126,8 +125,12 @@ namespace Game.Server.Systems
                 packet.Type = type.Type;
                 PacketDispatcher.Enqueue(packet);
             });
+        }
 
-            World.World.Destroy(in _despawnEntitiesQuery);
+        public QueryDescription _deleteEntititesQuery= new QueryDescription().WithAll<DeleteEntityTag>();
+        private void DeleteTaggedEntities()
+        {
+            World.World.Destroy(in _deleteEntititesQuery);
         }
     }
 }

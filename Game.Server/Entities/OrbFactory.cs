@@ -2,7 +2,6 @@
 using Arch.Core.Extensions;
 using Game.Common.Enums;
 using Game.Server.Components;
-using Game.Server.Systems;
 using System.Numerics;
 
 namespace Game.Server.Entities
@@ -15,22 +14,23 @@ namespace Game.Server.Entities
                 new EntityTypeComponent { Type = EntityType.HealingOrb },
                 new HitboxComponent { Radius = 2f },
                 new PositionComponent { Value = position },
-                new HealComponent { Value = healAmount },
-                new ColliderComponent { Radius = 2f,
-                OnStart =(self,other) =>
-                    {
-                        if(other.TryGet<HealthComponent>(out var health))
+                new ColliderComponent
+                {
+                    Radius = 1.5f,
+                    OnStart = ( self, other) =>
                         {
-                            health.CurrentValue += 10;
-                            if(health.CurrentValue > health.MaxValue)
+                            if (other.TryGet<HealthComponent>(out var health))
                             {
-                                health.CurrentValue = health.MaxValue;
+                                health.CurrentValue += healAmount;
+                                if (health.CurrentValue > health.MaxValue)
+                                {
+                                    health.CurrentValue = health.MaxValue;
+                                }
+                                other.Set<HealthComponent>(health);
+                                other.Add<HealthDirtyTag>();
+                                self.Add<DeleteEntityTag>();
                             }
-                            other.Set<HealthComponent>(health);
-                            other.Add<HealthDirtyTag>();
-                            self.Add<DeleteEntityTag>();
                         }
-                    }
                 },
                 new NewEntityTag() { },
                 new OrbTag { }
