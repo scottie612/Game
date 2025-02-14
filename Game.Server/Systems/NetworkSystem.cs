@@ -180,7 +180,6 @@ namespace Game.Server.Systems
                 }
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
             _logger.LogTrace($"Client Disconnected! IP: {peer.Address}; Ping:{peer.Ping}");
         }
     }

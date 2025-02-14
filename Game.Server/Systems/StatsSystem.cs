@@ -39,7 +39,6 @@ namespace Game.Server.Systems
                 buffer.Remove<HealthDirtyTag>(entity);
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
 
         private void SendManaUpdates()
@@ -57,7 +56,6 @@ namespace Game.Server.Systems
                 buffer.Remove<ManaDirtyTag>(entity);
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
 
 

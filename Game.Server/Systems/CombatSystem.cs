@@ -1,7 +1,6 @@
 ﻿using Arch.Buffer;
 using Arch.Core;
 using Arch.Core.Extensions;
-using CommunityToolkit.HighPerformance.Buffers;
 using Game.Common;
 using Game.Common.Enums;
 using Game.Common.Packets;
@@ -11,7 +10,6 @@ using Game.Server.Components;
 using Game.Server.Entities;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Numerics;
 
 namespace Game.Server.Systems
@@ -31,7 +29,6 @@ namespace Game.Server.Systems
             EnsureOrbs();
             UpdateWeaponCooldowns(deltaTime);
             Attack();
-            HandleCollisions();
             CheckForDeath();
         }
 
@@ -43,15 +40,15 @@ namespace Game.Server.Systems
             {
                 count++;
             });
-
-            var amountToAdd = 30 - count;
-            for (int i = 0; i < amountToAdd; i++)
+            var amountToAdd = 50 - count;
+            for (int i = 0; i<= amountToAdd; i++)
             {
                 var healAmount = RandomHelper.RandomInt(10, 100);
                 var position = new Vector2(RandomHelper.RandomFloat(-100f, 100f), RandomHelper.RandomFloat(-100f, 100f));
                 OrbFactory.CreateHealing(World.World, healAmount, position);
             }
         }
+
 
         private QueryDescription _recieveActionRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent>();
         public void HandleActionRequest(NetPeer peer, ActionRequestPacket packet)
@@ -69,7 +66,6 @@ namespace Game.Server.Systems
                 }
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
         }
 
         private QueryDescription _recieveChangeSelectedHotbarIndexRequestQuery = new QueryDescription().WithAll<NetworkConnectionComponent, HotbarComponent>();
@@ -126,99 +122,11 @@ namespace Game.Server.Systems
 
                         var bullet = ProjectileFactory.CreateRifleBullet(World.World, ref entity, ref selectedItem, arc.MouseDirection);
 
-
                     }
                     buffer.Remove<AttackRequestComponent>(entity);
                 }
             });
             buffer.Playback(World.World);
-            buffer.Dispose();
-        }
-
-        private QueryDescription _playerHitboxQuery = new QueryDescription().WithAll<HitboxComponent, PositionComponent, HealthComponent>();
-        private QueryDescription _damageOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, DamageComponent, HitboxComponent, ProjectileTag>();
-        private QueryDescription _healOnCollisionQuery = new QueryDescription().WithAll<PositionComponent, HealComponent, HitboxComponent, OrbTag>();
-        private void HandleCollisions()
-        {
-            var buffer = new CommandBuffer();
-            World.World.Query(in _playerHitboxQuery, (Entity playerEntity, ref HitboxComponent playerHB, ref PositionComponent playerPosition, ref HealthComponent playerHP) =>
-            {
-                var playerHealth = playerHP;
-                var playerPos = playerPosition;
-                var playerHitBox = playerHB;
-                World.World.Query(in _damageOnCollisionQuery, (Entity projectileEntity, ref PositionComponent projPos, ref DamageComponent projDamage, ref HitboxComponent projHitBox) =>
-                {
-                    if (projectileEntity == playerEntity)
-                        return;
-                    if (projectileEntity.TryGet<CasterComponent>(out var casterComponent))
-                    {
-                        if (casterComponent.CastingEntity == playerEntity)
-                            return;
-                    }
-                    if (IsColliding(playerPos, projPos, playerHitBox, projHitBox))
-                    {
-                        playerHealth.CurrentValue -= projDamage.Damage;
-
-                        buffer.Add<HealthDirtyTag>(playerEntity);
-                        buffer.Set(playerEntity, playerHealth);
-                        buffer.Add<DeleteEntityTag>(projectileEntity);
-                        _logger.LogTrace($"Entity {playerEntity.Id} hit by projectile {projectileEntity.Id}. Health: {playerHealth.CurrentValue}");
-                    }
-                });
-                World.World.Query(in _healOnCollisionQuery, (Entity orbEntity, ref PositionComponent orbPos, ref HealComponent orbHeal, ref HitboxComponent orbHitBox) =>
-                {
-                    if (orbEntity == playerEntity)
-                        return;
-                    if (orbEntity.TryGet<CasterComponent>(out var casterComponent))
-                    {
-                        if (casterComponent.CastingEntity == playerEntity)
-                            return;
-                    }
-                    if (IsColliding(playerPos, orbPos, playerHitBox, orbHitBox))
-                    {
-                        playerHealth.CurrentValue += orbHeal.Value;
-                        if(playerHealth.CurrentValue > playerHealth.MaxValue)
-                        {
-                            playerHealth.CurrentValue = playerHealth.MaxValue;
-                        }
-
-                        buffer.Add<HealthDirtyTag>(playerEntity);
-                        buffer.Set(playerEntity, playerHealth);
-                        buffer.Add<DeleteEntityTag>(orbEntity);
-                        _logger.LogTrace($"Entity {playerEntity.Id} healed by orb {orbEntity.Id}. Health: {playerHealth.CurrentValue}");
-                    }
-
-                });
-            });
-            buffer.Playback(World.World);
-            buffer.Dispose();
-        }
-
-        private bool IsColliding(PositionComponent positionA, PositionComponent positionB, HitboxComponent hitboxA, HitboxComponent hitboxB)
-        {
-            // Get center positions of both circles
-            Vector2 centerA = new Vector2(
-                positionA.Value.X + hitboxA.XOffset,
-                positionA.Value.Y + hitboxA.YOffset
-            );
-
-            Vector2 centerB = new Vector2(
-                positionB.Value.X + hitboxB.XOffset,
-                positionB.Value.Y + hitboxB.YOffset
-            );
-
-            // Check if circles overlap using distance check
-            var distanceSquared = Vector2.DistanceSquared(centerA, centerB);
-            var combinedRadius = hitboxA.Radius + hitboxB.Radius;
-
-            if (distanceSquared <= combinedRadius * combinedRadius)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
 
         private QueryDescription _deathQuery = new QueryDescription().WithAll<HealthComponent>();
@@ -244,7 +152,6 @@ namespace Game.Server.Systems
                             buffer.Add<PositionDiryTag>(entity);
                         }
                     }
-
                 }
             });
             buffer.Playback(World.World);
