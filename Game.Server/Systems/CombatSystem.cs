@@ -47,7 +47,6 @@ namespace Game.Server.Systems
                 var position = new Vector2(RandomHelper.RandomFloat(-100f, 100f), RandomHelper.RandomFloat(-100f, 100f));
                 OrbFactory.CreateHealing(World.World, healAmount, position);
             }
-
         }
 
 
@@ -153,7 +152,6 @@ namespace Game.Server.Systems
                             buffer.Add<PositionDiryTag>(entity);
                         }
                     }
-
                 }
             });
             buffer.Playback(World.World);
