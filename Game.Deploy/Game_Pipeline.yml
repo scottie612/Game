@@ -121,4 +121,4 @@ stages:
                 displayName: Upload Artifact to minio
                 inputs:
                   script: |
-                    mc cp --recursive $(Pipeline.Workspace)/Game.Client-$(Build.BuildNumber)/ "miniodev/shooter/clients/Game.Client-$(Build.BuildNumber)/" 
+                    mc cp --recursive --disable-multipart $(Pipeline.Workspace)/Game.Client-$(Build.BuildNumber)/ "miniodev/shooter/clients/Game.Client-$(Build.BuildNumber)/" 
