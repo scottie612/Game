@@ -8,17 +8,21 @@ using Game.Common.Random;
 using Game.Packets;
 using Game.Server.Components;
 using Game.Server.Entities;
+using Game.Server.Options;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Numerics;
 
 namespace Game.Server.Systems
 {
     public class CombatSystem : SystemBase
     {
-        private ILogger<CombatSystem> _logger;
-        public CombatSystem(GameWorld world, PacketDispatcher packetDispatcher, ILogger<CombatSystem> logger) : base(world, packetDispatcher)
+        private readonly ILogger<CombatSystem> _logger;
+        private readonly ServerOptions _serverOptions;
+        public CombatSystem(GameWorld world, PacketDispatcher packetDispatcher, IOptions<ServerOptions> serverOptions, ILogger<CombatSystem> logger) : base(world, packetDispatcher)
         {
+            _serverOptions = serverOptions.Value;
             _logger = logger;
             PacketDispatcher.Subscribe<ActionRequestPacket>(HandleActionRequest);
             PacketDispatcher.Subscribe<ChangeSelectedHotbarIndexRequestPacket>(HandleChangeSelectedHotbarIndexRequest);
@@ -44,7 +48,7 @@ namespace Game.Server.Systems
             for (int i = 0; i<= amountToAdd; i++)
             {
                 var healAmount = RandomHelper.RandomInt(10, 100);
-                var position = new Vector2(RandomHelper.RandomFloat(-100f, 100f), RandomHelper.RandomFloat(-100f, 100f));
+                var position = RandomHelper.RandomVector2(_serverOptions.MaxWorldSize.MinX, _serverOptions.MaxWorldSize.MaxX, _serverOptions.MaxWorldSize.MinY, _serverOptions.MaxWorldSize.MaxY);
                 OrbFactory.CreateHealing(World.World, healAmount, position);
             }
         }
@@ -145,7 +149,7 @@ namespace Game.Server.Systems
                         //If the entity is a player, respawn them
                         if (entityType.Type == EntityType.Player)
                         {
-                            buffer.Set(entity, new PositionComponent { Value = new Vector2(RandomHelper.RandomInt(-100, 100), RandomHelper.RandomInt(-100, 100)) });
+                            buffer.Set(entity, new PositionComponent { Value = RandomHelper.RandomVector2(_serverOptions.MaxWorldSize.MinX, _serverOptions.MaxWorldSize.MaxX, _serverOptions.MaxWorldSize.MinY, _serverOptions.MaxWorldSize.MaxY) });
                             buffer.Set(entity, new VelocityComponent { Value = new Vector2(0, 0) });
                             buffer.Set(entity, new HealthComponent { CurrentValue = 100, MaxValue = 100 });
                             buffer.Set(entity, new ManaComponent { CurrentValue = 100, MaxValue = 100 });
