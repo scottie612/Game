@@ -4,6 +4,8 @@ using Arch.Core.Extensions;
 using Game.Common;
 using Game.Packets;
 using Game.Server.Components;
+using Game.Server.Components.Stats;
+using Game.Server.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace Game.Server.Systems

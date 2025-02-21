@@ -4,10 +4,14 @@ using Game.Common;
 using Game.Common.Extentions;
 using Game.Packets;
 using Game.Server.Components;
+using Game.Server.Components.Collisions;
+using Game.Server.Components.Stats;
+using Game.Server.Entities;
 using Game.Server.Options;
 using LiteNetLib;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Numerics;
 
 namespace Game.Server.Systems
 {
@@ -27,6 +31,14 @@ namespace Game.Server.Systems
             PacketDispatcher.Subscribe<MovementRequestPacket>(HandleMovementRequest);
         }
 
+
+        public override void Initialize()
+        {
+            BarrierFactory.CreateBarrier(World.World, new Vector2(_serverSettings.MaxWorldSize.MaxX, 0), Shape.Box(1, _serverSettings.MaxWorldSize.MaxY * 2));
+            BarrierFactory.CreateBarrier(World.World, new Vector2(_serverSettings.MaxWorldSize.MinX, 0), Shape.Box(1, _serverSettings.MaxWorldSize.MaxY * 2));
+            BarrierFactory.CreateBarrier(World.World, new Vector2(0, _serverSettings.MaxWorldSize.MaxY), Shape.Box(_serverSettings.MaxWorldSize.MaxX * 2, 1));
+            BarrierFactory.CreateBarrier(World.World, new Vector2(0, _serverSettings.MaxWorldSize.MinY), Shape.Box(_serverSettings.MaxWorldSize.MaxX * 2, 1));
+        }
         public override void Update(float deltaTime)
         {
             UpdateVelocityWithMovementSpeed();
@@ -61,23 +73,6 @@ namespace Game.Server.Systems
             World.World.Query(in _movementQuery, (Entity entity, ref PositionComponent pos, ref VelocityComponent vel) =>
             {
                 pos.Value += vel.Value * deltaTime;
-
-                if(pos.Value.X >= _serverSettings.MaxWorldSize.MaxX)
-                {
-                    pos.Value.X = _serverSettings.MaxWorldSize.MaxX;
-                }
-                if (pos.Value.X <= _serverSettings.MaxWorldSize.MinX)
-                {
-                    pos.Value.X = _serverSettings.MaxWorldSize.MinX;
-                }
-                if (pos.Value.Y >= _serverSettings.MaxWorldSize.MaxY)
-                {
-                    pos.Value.Y = _serverSettings.MaxWorldSize.MaxY;
-                }
-                if (pos.Value.Y <= _serverSettings.MaxWorldSize.MinY)
-                {
-                    pos.Value.Y = _serverSettings.MaxWorldSize.MinY;
-                }
 
                 if (vel.Value.Length() > 0)
                 {

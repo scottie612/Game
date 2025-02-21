@@ -2,6 +2,8 @@
 using Arch.Core.Extensions;
 using Game.Common.Enums;
 using Game.Server.Components;
+using Game.Server.Components.Collisions;
+using Game.Server.Components.Stats;
 using System.Numerics;
 
 namespace Game.Server.Entities
@@ -12,11 +14,10 @@ namespace Game.Server.Entities
         {
             var healingOrb = world.Create(
                 new EntityTypeComponent { Type = EntityType.HealingOrb },
-                new HitboxComponent { Radius = 2f },
                 new PositionComponent { Value = position },
                 new ColliderComponent
                 {
-                    Radius = 1.5f,
+                    Shape = Shape.Circle(0.5f),
                     OnStart = ( self, other) =>
                         {
                             if (other.TryGet<HealthComponent>(out var health))

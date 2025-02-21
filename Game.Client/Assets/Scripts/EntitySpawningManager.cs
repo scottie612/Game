@@ -7,7 +7,7 @@ using UnityEngine;
 public class EntitySpawningManager : Singleton<EntitySpawningManager>
 {
     public ServerEntity PlayerPrefab;
-    public ServerEntity FireballPrefab;
+    public ServerEntity ArrowPrefab;
     public ServerEntity OrbPrefab;
 
 
@@ -37,13 +37,8 @@ public class EntitySpawningManager : Singleton<EntitySpawningManager>
                 }
 
                 break;
-            case EntityType.FireBall:
-                spawnedEntity = Instantiate(FireballPrefab, new Vector3(packet.StartingX, packet.StartingY, 0), Quaternion.identity);
-                spawnedEntity.EntityID = packet.EntityID;
-                spawnedEntity.EntityName = packet.EntityName;
-                break;
-            case EntityType.Bullet:
-                spawnedEntity = Instantiate(FireballPrefab, new Vector3(packet.StartingX, packet.StartingY, 0), Quaternion.identity);
+            case EntityType.Arrow:
+                spawnedEntity = Instantiate(ArrowPrefab, new Vector3(packet.StartingX, packet.StartingY, 0), Quaternion.identity);
                 spawnedEntity.EntityID = packet.EntityID;
                 spawnedEntity.EntityName = packet.EntityName;
                 break;

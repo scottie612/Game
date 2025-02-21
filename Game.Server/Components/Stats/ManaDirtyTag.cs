@@ -1,4 +1,4 @@
-﻿namespace Game.Server.Components
+﻿namespace Game.Server.Components.Stats
 {
     public struct ManaDirtyTag
     {

@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerPrefab: {fileID: 8563871897721531269, guid: 771990f62fe8b8246a6f0187da4c63ff, type: 3}
-  FireballPrefab: {fileID: 6390100499353291110, guid: b99cd949c72798f4fa9880e6a46864fc, type: 3}
+  ArrowPrefab: {fileID: 2705263952360454540, guid: ad25bf5dbcd238c4e88befd09210c778, type: 3}
   OrbPrefab: {fileID: 548885185415562259, guid: a8b1780db6cb9274687654396443e97c, type: 3}
 --- !u!1 &408626135
 GameObject:
@@ -453,7 +453,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 10.1484375
+  orthographic size: 0.625
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
