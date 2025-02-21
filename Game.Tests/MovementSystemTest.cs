@@ -2,6 +2,7 @@
 using Game.Common.Extentions;
 using Game.Server;
 using Game.Server.Components;
+using Game.Server.Components.Stats;
 using Game.Server.Systems;
 using Microsoft.Extensions.Logging;
 using System.Numerics;

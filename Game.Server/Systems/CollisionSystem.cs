@@ -4,6 +4,7 @@ using Arch.Core.Extensions;
 using Game.Common;
 using Game.Common.Enums;
 using Game.Server.Components;
+using Game.Server.Components.Collisions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -93,7 +94,7 @@ namespace Game.Server.Systems
                 // collision no longer exists
                 else
                 {
-                    _logger.LogTrace($"Collision Exiting... EntityA ID: {entity1.Entity.Id}, EntityB ID: {entity2.Entity.Id}");
+                    //_logger.LogTrace($"Collision Exiting... EntityA ID: {entity1.Entity.Id}, EntityB ID: {entity2.Entity.Id}");
                     collisionData.State = CollisionState.Exiting;
                 }
                 //removed the processed collisions from _currentCollisions
@@ -107,7 +108,7 @@ namespace Game.Server.Systems
                 var e1 = collision.Value.EntityA;
                 var e2 = collision.Value.EntityB;
 
-                _logger.LogTrace($"Collision Starting... EntityA ID: {e1.Entity.Id}, EntityB ID: {e2.Entity.Id}");
+               //_logger.LogTrace($"Collision Starting... EntityA ID: {e1.Entity.Id}, EntityB ID: {e2.Entity.Id}");
                 World.World.Create(new CollisionData { Hash = collision.Key, State = CollisionState.Starting }, collision.Value);
 
                 e1.Entity.Get<ColliderComponent>().ActiveCollisions.Add(e2);
@@ -115,8 +116,8 @@ namespace Game.Server.Systems
 
             }
             buffer.Playback(World.World);
-
         }
+
         private void ProcessCollisions()
         {
             var buffer = new CommandBuffer();
@@ -127,7 +128,7 @@ namespace Game.Server.Systems
 
                 if (!entity1.IsAlive() || !entity2.IsAlive())
                 {
-                    _logger.LogTrace($"Skipping collision callbacks - entity no longer alive. EntityA: {entity1.Entity.Id}, EntityB: {entity2.Entity.Id}");
+                    //_logger.LogTrace($"Skipping collision callbacks - entity no longer alive. EntityA: {entity1.Entity.Id}, EntityB: {entity2.Entity.Id}");
 
                     // Clean up ActiveCollisions
                     if (entity1.IsAlive() && entity1.Entity.Has<ColliderComponent>())
@@ -159,8 +160,6 @@ namespace Game.Server.Systems
                         buffer.Add<DeleteEntityTag>(entity);
                         break;
                 }
-
-
             });
             buffer.Playback(World.World);
         }
@@ -171,18 +170,74 @@ namespace Game.Server.Systems
             Vector2 centerA = positionA.Value + colliderA.Offset;
             Vector2 centerB = positionB.Value + colliderB.Offset;
 
-            // Check if circles overlap using distance check
-            var distanceSquared = Vector2.DistanceSquared(centerA, centerB);
-            var combinedRadius = colliderA.Radius + colliderB.Radius;
+            switch (colliderA.Shape.Type)
+            {
+                case ShapeType.Circle:
+                    switch (colliderB.Shape.Type)
+                    {
+                        case ShapeType.Circle:
+                            return CheckCircleCircleCollision(centerA, colliderA.Shape.Radius, centerB, colliderB.Shape.Radius);
+                        case ShapeType.Box:
+                            return CheckCircleBoxCollision(centerA, colliderA.Shape.Radius, centerB, colliderB.Shape.Size);
+                    }
+                    break;
+                case ShapeType.Box:
+                    switch (colliderB.Shape.Type)
+                    {
+                        case ShapeType.Circle:
+                            return CheckCircleBoxCollision(centerB, colliderB.Shape.Radius, centerA, colliderA.Shape.Size);
+                        case ShapeType.Box:
+                            return CheckBoxBoxCollision(centerA, colliderA.Shape.Size, centerB, colliderB.Shape.Size);
+                    }
+                    break;
+            }
+            return false;
+        }
 
-            if (distanceSquared <= combinedRadius * combinedRadius)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+        private bool CheckCircleCircleCollision(Vector2 centerA, float radiusA, Vector2 centerB, float radiusB)
+        {
+            var distanceSquared = Vector2.DistanceSquared(centerA, centerB);
+            var combinedRadius = radiusA + radiusB;
+
+            return distanceSquared <= combinedRadius * combinedRadius;
+        }
+
+        private bool CheckBoxBoxCollision(Vector2 centerA, Vector2 sizeA, Vector2 centerB, Vector2 sizeB)
+        {
+            // Calculate half-sizes for both boxes
+            Vector2 halfSizeA = sizeA * 0.5f;
+            Vector2 halfSizeB = sizeB * 0.5f;
+
+            // Calculate min/max points for both boxes
+            Vector2 minA = centerA - halfSizeA;
+            Vector2 maxA = centerA + halfSizeA;
+            Vector2 minB = centerB - halfSizeB;
+            Vector2 maxB = centerB + halfSizeB;
+
+            // Check for overlap on both axes (AABB collision)
+            return (minA.X <= maxB.X && maxA.X >= minB.X) &&
+                   (minA.Y <= maxB.Y && maxA.Y >= minB.Y);
+        }
+
+        private bool CheckCircleBoxCollision(Vector2 circleCenter, float radius, Vector2 boxCenter, Vector2 boxSize)
+        {
+            // Calculate half-size of box
+            Vector2 halfSize = boxSize * 0.5f;
+
+            // Calculate box min/max points
+            Vector2 boxMin = boxCenter - halfSize;
+            Vector2 boxMax = boxCenter + halfSize;
+
+            // Find the closest point on the box to the circle center
+            float closestX = MathF.Max(boxMin.X, MathF.Min(circleCenter.X, boxMax.X));
+            float closestY = MathF.Max(boxMin.Y, MathF.Min(circleCenter.Y, boxMax.Y));
+            Vector2 closestPoint = new Vector2(closestX, closestY);
+
+            // Calculate distance from closest point to circle center
+            float distanceSquared = Vector2.DistanceSquared(circleCenter, closestPoint);
+
+            // Check if distance is less than or equal to radius
+            return distanceSquared <= radius * radius;
         }
     }
 }

@@ -2,7 +2,7 @@
 using Arch.Core;
 using Game.Common;
 using Game.Common.Packets;
-using Game.Server.Components;
+using Game.Server.Components.Stats;
 using Microsoft.Extensions.Logging;
 
 namespace Game.Server.Systems

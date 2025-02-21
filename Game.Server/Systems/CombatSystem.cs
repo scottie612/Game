@@ -7,6 +7,7 @@ using Game.Common.Packets;
 using Game.Common.Random;
 using Game.Packets;
 using Game.Server.Components;
+using Game.Server.Components.Stats;
 using Game.Server.Entities;
 using Game.Server.Options;
 using LiteNetLib;
@@ -124,7 +125,7 @@ namespace Game.Server.Systems
                         };
                         PacketDispatcher.Enqueue(attackedPacket);
 
-                        var bullet = ProjectileFactory.CreateRifleBullet(World.World, ref entity, ref selectedItem, arc.MouseDirection);
+                        var bullet = ProjectileFactory.CreateArrow(World.World, ref entity, ref selectedItem, arc.MouseDirection);
 
                     }
                     buffer.Remove<AttackRequestComponent>(entity);
