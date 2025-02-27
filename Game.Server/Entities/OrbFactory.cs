@@ -18,20 +18,15 @@ namespace Game.Server.Entities
                 new ColliderComponent
                 {
                     Shape = Shape.Circle(0.5f),
-                    OnStart = ( self, other) =>
+                    OnStart = (self, other) =>
+                    {
+                        if (other.Entity.Has<HealthComponent>())
                         {
-                            if (other.TryGet<HealthComponent>(out var health))
-                            {
-                                health.CurrentValue += healAmount;
-                                if (health.CurrentValue > health.MaxValue)
-                                {
-                                    health.CurrentValue = health.MaxValue;
-                                }
-                                other.Set<HealthComponent>(health);
-                                other.Add<HealthDirtyTag>();
-                                self.Add<DeleteEntityTag>();
-                            }
+                            other.Entity.Get<HealthComponent>().Heal(other, 10);
+
+                            self.Entity.Add<DeleteEntityTag>();
                         }
+                    }
                 },
                 new NewEntityTag() { },
                 new OrbTag { }

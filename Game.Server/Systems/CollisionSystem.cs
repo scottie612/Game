@@ -144,16 +144,16 @@ namespace Game.Server.Systems
                 switch (collisionData.State)
                 {
                     case CollisionState.Starting:
-                        entity1.Entity.Get<ColliderComponent>().OnStart?.Invoke(entity1.Entity, entity2.Entity);
-                        entity2.Entity.Get<ColliderComponent>().OnStart?.Invoke(entity2.Entity, entity1.Entity);
+                        entity1.Entity.Get<ColliderComponent>().OnStart?.Invoke(entity1, entity2);
+                        entity2.Entity.Get<ColliderComponent>().OnStart?.Invoke(entity2, entity1);
                         break;
                     case CollisionState.Continuing:
-                        entity1.Entity.Get<ColliderComponent>().OnContinue?.Invoke(entity1.Entity, entity2.Entity);
-                        entity2.Entity.Get<ColliderComponent>().OnContinue?.Invoke(entity2.Entity, entity1.Entity);
+                        entity1.Entity.Get<ColliderComponent>().OnContinue?.Invoke(entity1, entity2);
+                        entity2.Entity.Get<ColliderComponent>().OnContinue?.Invoke(entity2, entity1);
                         break;
                     case CollisionState.Exiting:
-                        entity1.Entity.Get<ColliderComponent>().OnExit?.Invoke(entity1.Entity, entity2.Entity);
-                        entity2.Entity.Get<ColliderComponent>().OnExit?.Invoke(entity2.Entity, entity1.Entity);
+                        entity1.Entity.Get<ColliderComponent>().OnExit?.Invoke(entity1, entity2);
+                        entity2.Entity.Get<ColliderComponent>().OnExit?.Invoke(entity2, entity1);
                         entity1.Entity.Get<ColliderComponent>().ActiveCollisions.Remove(entity2);
                         entity2.Entity.Get<ColliderComponent>().ActiveCollisions.Remove(entity1);
 

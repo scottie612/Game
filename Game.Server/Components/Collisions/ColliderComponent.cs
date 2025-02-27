@@ -15,9 +15,9 @@ namespace Game.Server.Components.Collisions
         public Shape Shape;
         public Vector2 Offset;
         public HashSet<EntityReference> ActiveCollisions;
-        public Action<Entity, Entity>? OnStart;
-        public Action<Entity, Entity>? OnContinue;
-        public Action<Entity, Entity>? OnExit;
+        public Action<EntityReference, EntityReference>? OnStart;
+        public Action<EntityReference, EntityReference>? OnContinue;
+        public Action<EntityReference, EntityReference>? OnExit;
     }
 
     public record struct Shape

@@ -18,17 +18,17 @@ namespace Game.Server.Entities
                     Shape = shape,
                     OnContinue = (self, other) =>
                     {
-                        if (other.TryGet<EntityTypeComponent>(out var entityType))
+                        if (other.Entity.TryGet<EntityTypeComponent>(out var entityType))
                         {
                             if (entityType.Type == EntityType.Player)
                             {
-                                var playerPosition = other.Get<PositionComponent>().Value;
-                                var velocityComponent = other.Get<VelocityComponent>();
+                                var playerPosition = other.Entity.Get<PositionComponent>().Value;
+                                var velocityComponent = other.Entity.Get<VelocityComponent>();
                                 var vel = velocityComponent.Value;
 
                                 // Get the shape and position of the barrier
-                                var collider = self.Get<ColliderComponent>();
-                                var barrierPosition = self.Get<PositionComponent>().Value;
+                                var collider = other.Entity.Get<ColliderComponent>();
+                                var barrierPosition = other.Entity.Get<PositionComponent>().Value;
                                 var closestPoint = collider.Shape.ClosestPoint(barrierPosition, playerPosition);
 
                                 // Compute normal vector
@@ -48,7 +48,7 @@ namespace Game.Server.Entities
                                 }
 
                                 // Set new velocity
-                                other.Set(new VelocityComponent { Value = vel });
+                                other.Entity.Set(new VelocityComponent { Value = vel });
 
                             }
                         }

@@ -26,7 +26,6 @@ public class RotateBasedOnPreviousPosition : MonoBehaviour
             // Set the Z rotation (for 2D)
             transform.rotation = Quaternion.Euler(0, 0, angle);
 
-            Debug.Log($"Movement Direction: {movementDirection}, Angle: {angle}");
         }
 
         _previousPosition = transform.position;

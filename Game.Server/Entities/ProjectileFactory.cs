@@ -12,11 +12,11 @@ namespace Game.Server.Entities
     public static class ProjectileFactory
     {
 
-        public static Entity CreateArrow(World world, ref Entity castingEntity, ref Entity weapon, Vector2 direction)
+        public static Entity CreateArrow(World world, EntityReference castingEntity, Vector2 direction)
         {
-            var startingPosition = castingEntity.Get<PositionComponent>().Value;
+            var startingPosition = castingEntity.Entity.Get<PositionComponent>().Value;
 
-            var bullet = world.Create(
+            var arrow = world.Create(
                 new EntityTypeComponent { Type = EntityType.Arrow },
                 new CasterComponent { CastingEntity = castingEntity },
                 new PositionComponent { Value = startingPosition },
@@ -28,21 +28,51 @@ namespace Game.Server.Entities
                     Shape = Shape.Circle(0.1f),
                     OnStart = (self, other) =>
                     {
-                        if (self.Get<CasterComponent>().CastingEntity == other)
+                        if (self.Entity.Get<CasterComponent>().CastingEntity == other)
                             return;
-                        if (other.TryGet<HealthComponent>(out var health))
+                        if (other.Entity.Has<HealthComponent>())
                         {
-                            health.CurrentValue -= 15;
-                            other.Set<HealthComponent>(health);
-                            other.Add<HealthDirtyTag>();
-                            self.Add<DeleteEntityTag>();
+                            other.Entity.Get<HealthComponent>().TakeDamage(other, 20);
+                            self.Entity.Add<DeleteEntityTag>();
                         }
                     }
                 },
                 new ProjectileTag { },
                 new NewEntityTag { }
                 );
-            return bullet;
+            return arrow;
+        }
+
+        public static Entity CreateShotgunProjectile(World world, EntityReference castingEntity, Vector2 direction)
+        {
+            var startingPosition = castingEntity.Entity.Get<PositionComponent>().Value;
+
+            var arrow = world.Create(
+                new EntityTypeComponent { Type = EntityType.Bullet },
+                new CasterComponent { CastingEntity = castingEntity },
+                new PositionComponent { Value = startingPosition },
+                new VelocityComponent { Value = direction },
+                new MovementSpeedComponent { Value = 15f },
+                new RangeComponent { Range = 10, StartingPosition = startingPosition },
+                new ColliderComponent
+                {
+                    Shape = Shape.Circle(0.1f),
+                    OnStart = (self, other) =>
+                    {
+                        if (self.Entity.Get<CasterComponent>().CastingEntity == other)
+                            return;
+
+                        if (other.Entity.Has<HealthComponent>()) 
+                        {
+                            other.Entity.Get<HealthComponent>().TakeDamage(other, 10);
+                            self.Entity.Add<DeleteEntityTag>();
+                        }
+                    }
+                },
+                new ProjectileTag { },
+                new NewEntityTag { }
+                );
+            return arrow;
         }
     }
 }

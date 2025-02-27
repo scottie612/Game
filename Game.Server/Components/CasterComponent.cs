@@ -4,6 +4,6 @@ namespace Game.Server.Components
 {
     public struct CasterComponent
     {
-        public Entity CastingEntity;
+        public EntityReference CastingEntity;
     }
 }
