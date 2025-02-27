@@ -27,8 +27,8 @@ namespace Game.Server.Entities
                                 var vel = velocityComponent.Value;
 
                                 // Get the shape and position of the barrier
-                                var collider = other.Entity.Get<ColliderComponent>();
-                                var barrierPosition = other.Entity.Get<PositionComponent>().Value;
+                                var collider = self.Entity.Get<ColliderComponent>();
+                                var barrierPosition = self.Entity.Get<PositionComponent>().Value;
                                 var closestPoint = collider.Shape.ClosestPoint(barrierPosition, playerPosition);
 
                                 // Compute normal vector
