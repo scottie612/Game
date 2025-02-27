@@ -53,6 +53,26 @@ namespace Game.Common.Extentions
             var convertedAngle = ((angle % 360) + 360) % 360;
             return convertedAngle;
         }
+
+
+        /// <summary>
+        /// returns a rotated a vector by a given number of degrees
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <param name="degrees"></param>
+        /// <returns></returns>
+        public static Vector2 Rotate(this Vector2 vector, float degrees)
+        {
+            float radians = degrees.ToRadians();
+
+            float sin = MathF.Sin(radians);
+            float cos = MathF.Cos(radians);
+
+            return new Vector2(
+                vector.X * cos - vector.Y * sin,
+                vector.X * sin + vector.Y * cos
+            );
+        }
     }
 
 }

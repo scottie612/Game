@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 263a101a5d7eedc488452a4213fedcc7
+guid: cef960c0cb5ab774a9f45a95933768c9
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,7 +97,7 @@ ScriptedImporter:
     addSortingGroup: 1
     addShadowCasters: 0
   importFileNodeState: 1
-  platformSettingsDirtyTick: 638762004948939241
+  platformSettingsDirtyTick: 638762011749162519
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -121,7 +121,7 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: Wood Bow
+  - name: Hotbarborder
     originalName: 
     pivot: {x: 0.5, y: 0}
     alignment: 9
@@ -132,7 +132,7 @@ ScriptedImporter:
       y: 4
       width: 16
       height: 16
-    spriteID: 4ee27a73a5e9244458a90c705c78ca4e
+    spriteID: e0fe84880eb6019409e63e5fd7d602c6
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -142,7 +142,7 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
   spriteSheetImportData:
-  - name: Wood Bow_0
+  - name: Hotbarborder_0
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -153,7 +153,7 @@ ScriptedImporter:
       y: 0
       width: 16
       height: 16
-    spriteID: 293ef8252bad49c41ba31383b6ca9b6c
+    spriteID: 0a4ec5f1aa3cc0e4e9bf5974780fe841
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -164,13 +164,13 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   asepriteLayers:
   - layerIndex: 0
-    guid: 2087849829
-    name: Wood Bow
+    guid: 1719098348
+    name: Hotbarborder
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: Wood Bow
+    - name: Hotbarborder
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
@@ -178,7 +178,7 @@ ScriptedImporter:
         y: 0
         width: 16
         height: 16
-      spriteId: 4ee27a73a5e9244458a90c705c78ca4e
+      spriteId: e0fe84880eb6019409e63e5fd7d602c6
     linkedCells: []
     parentIndex: -1
   platformSettings:

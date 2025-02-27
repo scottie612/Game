@@ -1,10 +1,11 @@
+using Game.Common.Packets;
 using Game.Packets;
 using LiteNetLib;
 using UnityEngine;
 
 public class InputManager : Singleton<InputManager>
 {
-
+    
     private Vector2 _currentMovementInput;
     private Vector2 _previousMovementInput;
 
@@ -31,7 +32,6 @@ public class InputManager : Singleton<InputManager>
 
             mousePos = mousePos.normalized;
 
-            Debug.Log($"Fire Direction: {mousePos}");
             var packet = new ActionRequestPacket();
             packet.CastDirection = new System.Numerics.Vector2(mousePos.x,mousePos.y);
             NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
@@ -40,19 +40,32 @@ public class InputManager : Singleton<InputManager>
 
         if (Input.GetKeyUp(KeyCode.Alpha1)) 
         { 
-        
+            var packet = new ChangeSelectedHotbarIndexRequestPacket();
+            packet.Index = 0;
+            NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
+            HotbarManager.Instance.ChangeSelectedHotbarIndex(0);
+
         }
         if (Input.GetKeyUp(KeyCode.Alpha2))
         {
-
+            var packet = new ChangeSelectedHotbarIndexRequestPacket();
+            packet.Index = 1;
+            NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
+            HotbarManager.Instance.ChangeSelectedHotbarIndex(1);
         }
         if (Input.GetKeyUp(KeyCode.Alpha3))
         {
-
+            var packet = new ChangeSelectedHotbarIndexRequestPacket();
+            packet.Index = 2;
+            NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
+            HotbarManager.Instance.ChangeSelectedHotbarIndex(2);
         }
         if (Input.GetKeyUp(KeyCode.Alpha4))
         {
-
+            var packet = new ChangeSelectedHotbarIndexRequestPacket();
+            packet.Index = 3;
+            NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
+            HotbarManager.Instance.ChangeSelectedHotbarIndex(3);
         }
     }
 }
