@@ -19,12 +19,15 @@ public class LoginManager : MonoBehaviour
     [SerializeField] private Sprite _showPasswordIcon;
     [SerializeField] private Sprite _hidePasswordIcon;
 
+    [SerializeField] private Button _exitButton;
+
     public void Start()
     {
         _loginResponse.text = "";
         _login.onClick.AddListener(OnLoginClicked);
         _register.onClick.AddListener(OnRegisterClicked);
         _togglePasswordVisibility.onClick.AddListener(OnTogglePasswordVisibilityClicked);
+        _exitButton.onClick.AddListener(Application.Quit);
 
         _email.Select();
         _email.ActivateInputField();

@@ -86,6 +86,12 @@ public class NetworkManager : Singleton<NetworkManager>, INetEventListener
         SceneManager.LoadScene("Play");
     }
 
+    public void Disconnect()
+    {
+        _netManager.DisconnectAll();
+        SceneManager.LoadScene("Play");
+    }
+
     public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
     {
         PacketType type = (PacketType)reader.GetByte();
