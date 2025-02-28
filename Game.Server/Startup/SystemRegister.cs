@@ -12,7 +12,7 @@ namespace Game.Server.Startup
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
 
-            // Find all types that inherit from ControllerBase
+            // Find all types that inherit from SystemBase
             var systemTypes = assembly.GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(SystemBase)));
 

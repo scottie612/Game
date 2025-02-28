@@ -1,6 +1,5 @@
 using Game.Common.Packets;
 using Game.Packets;
-using LiteNetLib;
 using UnityEngine;
 
 public class InputManager : Singleton<InputManager>
@@ -9,7 +8,6 @@ public class InputManager : Singleton<InputManager>
     private Vector2 _currentMovementInput;
     private Vector2 _previousMovementInput;
 
-   
     void Update()
     {
         _currentMovementInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
@@ -43,7 +41,7 @@ public class InputManager : Singleton<InputManager>
             var packet = new ChangeSelectedHotbarIndexRequestPacket();
             packet.Index = 0;
             NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
-            HotbarManager.Instance.ChangeSelectedHotbarIndex(0);
+            UIManager.Instance.ChangeSelectedHotbarIndex(0);
 
         }
         if (Input.GetKeyUp(KeyCode.Alpha2))
@@ -51,21 +49,26 @@ public class InputManager : Singleton<InputManager>
             var packet = new ChangeSelectedHotbarIndexRequestPacket();
             packet.Index = 1;
             NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
-            HotbarManager.Instance.ChangeSelectedHotbarIndex(1);
+            UIManager.Instance.ChangeSelectedHotbarIndex(1);
         }
         if (Input.GetKeyUp(KeyCode.Alpha3))
         {
             var packet = new ChangeSelectedHotbarIndexRequestPacket();
             packet.Index = 2;
             NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
-            HotbarManager.Instance.ChangeSelectedHotbarIndex(2);
+            UIManager.Instance.ChangeSelectedHotbarIndex(2);
         }
         if (Input.GetKeyUp(KeyCode.Alpha4))
         {
             var packet = new ChangeSelectedHotbarIndexRequestPacket();
             packet.Index = 3;
             NetworkManager.Instance.PacketDispatcher.Enqueue(packet);
-            HotbarManager.Instance.ChangeSelectedHotbarIndex(3);
+            UIManager.Instance.ChangeSelectedHotbarIndex(3);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            UIManager.Instance.ToggleGameMenuVisibility();
         }
     }
 }

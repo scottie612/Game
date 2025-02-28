@@ -10,6 +10,7 @@ public class PlayManager : MonoBehaviour
     [SerializeField] private TMP_Dropdown _ipDropdown;
     [SerializeField] private Button _playButton;
     [SerializeField] private Button _logoutButton;
+    [SerializeField] private Button _exitButton;
 
     private List<string> DropOptions = new List<string> { "localhost", "Dev-local", "Dev" };
 
@@ -22,6 +23,7 @@ public class PlayManager : MonoBehaviour
 
         _playButton.onClick.AddListener(OnPlayClicked);
         _logoutButton.onClick.AddListener(OnLogoutClicked);
+        _exitButton.onClick.AddListener(Application.Quit);
     }
 
     public void Update()
